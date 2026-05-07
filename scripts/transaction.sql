@@ -105,7 +105,7 @@ CREATE TABLE IF NOT EXISTS transaction.cart_items (
     CONSTRAINT fk_cart_items_cart FOREIGN KEY (cart_id)
         REFERENCES transaction.carts (id) ON DELETE CASCADE,
     CONSTRAINT fk_cart_items_product FOREIGN KEY (product_id)
-        REFERENCES master.products (id) ON DELETE CASCADE,
+        REFERENCES master.products (id),
     CONSTRAINT fk_cart_items_unit FOREIGN KEY (unit_id)
         REFERENCES reference.units (id),
 
@@ -253,7 +253,7 @@ CREATE TABLE IF NOT EXISTS transaction.contracts (
     start_date         DATE                               NOT NULL,
     end_date           DATE                               NOT NULL,
     frequency          transaction.contract_schedule_type NOT NULL DEFAULT 'weekly',
-    shipping_amount    INT                                NOT NULL DEFAULT 0,
+    total_shipping     INT                                NOT NULL DEFAULT 0,
     description        TEXT                               NULL,
     contract_status_id INT                                NOT NULL,
     created_at         TIMESTAMP                                   DEFAULT CURRENT_TIMESTAMP,
@@ -285,7 +285,7 @@ CREATE TABLE IF NOT EXISTS transaction.contract_products (
     contract_id    BIGINT         NOT NULL,
     product_id     BIGINT         NOT NULL,
     quantity       DECIMAL(10, 2) NOT NULL,
-    unit_id        BIGINT         NOT NULL,
+    unit_id        INT            NOT NULL,
     subtotal       DECIMAL(10, 2) NOT NULL,
     total_quantity DECIMAL(10, 2) NULL,
     created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
