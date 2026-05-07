@@ -1,0 +1,6 @@
+# Blacklist
+.env
+.env.*
+
+# Whitelist
+!.env.example
