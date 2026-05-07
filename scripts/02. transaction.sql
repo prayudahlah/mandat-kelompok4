@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS transaction.negotiations (
     -- agreed_quantity_offer > 0
     CONSTRAINT chk_negotiation_quantity CHECK (agreed_quantity_offer > 0),
 
-    -- agreed_offer_price > 0
+    -- agreed_price_offer > 0
     CONSTRAINT chk_negotiation_price CHECK (agreed_price_offer > 0)
 );
 
