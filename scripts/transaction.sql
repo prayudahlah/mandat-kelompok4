@@ -1,7 +1,7 @@
 CREATE SCHEMA transaction;
 
 CREATE TABLE transaction.orders (
-    id BIGINT PRIMARY KEY,
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     order_number VARCHAR(30) NOT NULL UNIQUE,
     buyer_id BIGINT NOT NULL,
     order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -15,7 +15,7 @@ CREATE TABLE transaction.orders (
 );
 
 CREATE TABLE transaction.order_items (
-    id BIGINT PRIMARY KEY,
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     order_id BIGINT NOT NULL,
     product_id BIGINT NOT NULL,
     quantity DECIMAL(10, 2) NOT NULL,
@@ -30,7 +30,7 @@ CREATE TABLE transaction.order_items (
 );
 
 CREATE TABLE transaction.payments (
-    id BIGINT PRIMARY KEY,
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     order_id BIGINT NOT NULL,
     payment_method_id INT NOT NULL,
     amount DECIMAL(12, 2) NOT NULL,
@@ -45,7 +45,7 @@ CREATE TABLE transaction.payments (
 );
 
 CREATE TABLE transaction.shipments (
-    id BIGINT PRIMARY KEY,
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     order_id BIGINT NOT NULL,
     courier_name VARCHAR(50) NULL,
     shipment_status_id INT NOT NULL,
@@ -69,7 +69,7 @@ CREATE TYPE frequency_enum AS ENUM ('daily', 'weekly', 'monthly');
 CREATE TYPE contract_status_enum AS ENUM ('open', 'closed', 'cancelled', 'rejected');
 
 CREATE TABLE transaction.contracts (
-    id BIGINT PRIMARY KEY,
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     buyer_id BIGINT NOT NULL,
     seller_id BIGINT NOT NULL,
     total_amount DECIMAL(10, 2) NOT NULL,
@@ -124,7 +124,7 @@ CREATE TABLE transaction.contract_products (
 CREATE TYPE negotiation_status_enum AS ENUM ('submitted', 'accepted', 'canceled', 'rejected', 'ongoing');
 
 CREATE TABLE transaction.negotiations (
-    id BIGINT PRIMARY KEY,
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     seller_id BIGINT NOT NULL,
     buyer_id BIGINT NOT NULL,
     product_id BIGINT NULL,
