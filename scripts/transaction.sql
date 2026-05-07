@@ -99,6 +99,7 @@ CREATE TABLE transaction.contracts (
 CREATE TYPE contract_product_status_enum AS ENUM ('open', 'closed', 'cancelled', 'rejected');
 
 CREATE TABLE transaction.contract_products (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     contract_id BIGINT NOT NULL,
     product_id BIGINT NOT NULL,
     quantity DECIMAL(10, 2) NOT NULL,
@@ -108,8 +109,8 @@ CREATE TABLE transaction.contract_products (
     status contract_product_status_enum NOT NULL DEFAULT 'open',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
-    CONSTRAINT pk_contract_products PRIMARY KEY (contract_id, product_id),
-    
+    CONSTRAINT unique_contract_product UNIQUE (product_id, contract_id),
+
     CONSTRAINT fk_cp_contract FOREIGN KEY (contract_id) REFERENCES contracts(id) ON DELETE CASCADE,
     CONSTRAINT fk_cp_product FOREIGN KEY (product_id) REFERENCES products(id),
     CONSTRAINT fk_cp_unit FOREIGN KEY (unit_id) REFERENCES units(id),
@@ -153,6 +154,7 @@ CREATE TABLE transaction.negotiations (
 CREATE TYPE turn_owner_enum AS ENUM ('seller', 'buyer');
 
 CREATE TABLE transaction.negotiation_details (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     negotiation_id BIGINT NOT NULL,
     turn_order INT NOT NULL,
     turn_owner turn_owner_enum NOT NULL,
@@ -161,8 +163,6 @@ CREATE TABLE transaction.negotiation_details (
     quantity_offer DECIMAL(10, 2) NOT NULL,
     description TEXT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
-    CONSTRAINT pk_negotiation_details PRIMARY KEY (negotiation_id, turn_order),
     
     CONSTRAINT fk_nd_negotiation FOREIGN KEY (negotiation_id) REFERENCES negotiations(id) ON DELETE CASCADE,
     CONSTRAINT fk_nd_unit FOREIGN KEY (unit_id) REFERENCES units(id),
