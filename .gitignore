@@ -1,6 +1,7 @@
 # Blacklist
 .env
 .env.*
+.idea
 
 # Whitelist
 !.env.example
