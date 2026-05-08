@@ -86,15 +86,12 @@ INSERT INTO reference.units (name) VALUES
 -- 2. checkout_statuses
 INSERT INTO reference.checkout_statuses (code) VALUES
     ('pending'),
-    ('processed'),
     ('failed'),
     ('cancelled'),
     ('expired'),
     ('awaiting_payment'),
     ('paid'),
     ('refunded'),
-    ('partial_refund'),
-    ('abandoned');
 
 -- 3. order_statuses
 INSERT INTO reference.order_statuses (code) VALUES
@@ -106,7 +103,6 @@ INSERT INTO reference.order_statuses (code) VALUES
     ('cancelled'),
     ('returned'),
     ('on_hold'),
-    ('on_hold');
 
 -- 4. payment_statuses
 INSERT INTO reference.payment_statuses (code) VALUES
@@ -131,16 +127,12 @@ INSERT INTO reference.shipment_statuses (code) VALUES
 
 -- 6. contract_statuses
 INSERT INTO reference.contract_statuses (code) VALUES
-    ('open'),
+    ('rejected'),
     ('approved'),
     ('active'),
     ('completed'),
-    ('terminated'),
     ('cancelled'),
-    ('rejected'),
-    ('expired'),
-    ('suspended'),
-    ('renewed');
+    ('expired');
 
 -- 7. payment_methods
 INSERT INTO reference.payment_methods (name) VALUES
@@ -162,8 +154,7 @@ INSERT INTO reference.product_categories (name, parent_id) VALUES
     ('Rempah-rempah & Bumbu', NULL),
     ('Tanaman Perkebunan', NULL),
     ('Tanaman Hias & Bunga', NULL),
-    ('Hasil Hutan Non-Kayu', NULL),
-    ('Pupuk dan Pestisida', NULL);
+    ('Hasil Hutan Non-Kayu', NULL);
 
 -- Anak kategori 
 INSERT INTO reference.product_categories (name, parent_id)
