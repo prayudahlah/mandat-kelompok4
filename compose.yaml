@@ -5,6 +5,7 @@ services:
     container_name: mdm_hub
     volumes:
       - mdm_hub:/var/lib/postgresql/data
+      - ./csv:/csv
     ports:
       - "5433:5432"
     environment:

@@ -329,4 +329,150 @@ CREATE TABLE IF NOT EXISTS transaction.contract_schedules (
         REFERENCES transaction.contracts (id) ON DELETE CASCADE
 );
 
+-- Load data from CSV
+COPY transaction.negotiations (
+    seller_id,
+    buyer_id,
+    product_id,
+    agreed_price_offer,
+    agreed_unit_id,
+    agreed_quantity_offer,
+    valid_until,
+    status,
+    created_at,
+    updated_at
+)
+FROM '/csv/negotiations.csv'
+WITH (FORMAT csv, HEADER true);
+
+COPY transaction.negotiation_chats (
+    negotiation_id,
+    turn_order,
+    turn_owner,
+    offer_price,
+    unit_id,
+    quantity_offer,
+    description,
+    created_at
+)
+FROM '/csv/negotiation_chats.csv'
+WITH (FORMAT csv, HEADER true);
+
+COPY transaction.carts (
+    buyer_id,
+    created_at
+)
+FROM '/csv/carts.csv'
+WITH (FORMAT csv, HEADER true);
+
+COPY transaction.cart_items (
+    cart_id,
+    product_id,
+    quantity,
+    unit_id,
+    added_at
+)
+FROM '/csv/cart_items.csv'
+WITH (FORMAT csv, HEADER true);
+
+COPY transaction.checkouts (
+    buyer_id,
+    total_amount,
+    shipping_address,
+    checkout_status_id,
+    created_at,
+    updated_at
+)
+FROM '/csv/checkouts.csv'
+WITH (FORMAT csv, HEADER true);
+
+COPY transaction.orders (
+    checkout_id,
+    order_number,
+    buyer_id,
+    seller_id,
+    subtotal,
+    order_status_id,
+    created_at,
+    updated_at
+)
+FROM '/csv/orders.csv'
+WITH (FORMAT csv, HEADER true);
+
+COPY transaction.order_items (
+    order_id,
+    product_id,
+    quantity,
+    unit_id,
+    price_per_unit,
+    discount,
+    subtotal,
+    negotiation_id
+)
+FROM '/csv/order_items.csv'
+WITH (FORMAT csv, HEADER true);
+
+COPY transaction.payments (
+    checkout_id,
+    payment_method_id,
+    amount,
+    payment_status_id,
+    transaction_id,
+    paid_at,
+    created_at,
+    updated_at
+)
+FROM '/csv/payments.csv'
+WITH (FORMAT csv, HEADER true);
+
+COPY transaction.shipments (
+    order_id,
+    courier_name,
+    shipment_status_id,
+    shipped_date,
+    delivered_date,
+    created_at,
+    updated_at
+)
+FROM '/csv/shipments.csv'
+WITH (FORMAT csv, HEADER true);
+
+COPY transaction.contracts (
+    buyer_id,
+    seller_id,
+    total_amount,
+    delivery_location,
+    start_date,
+    end_date,
+    frequency,
+    total_shipping,
+    description,
+    contract_status_id,
+    created_at,
+    updated_at
+)
+FROM '/csv/contracts.csv'
+WITH (FORMAT csv, HEADER true);
+
+COPY transaction.contract_products (
+    contract_id,
+    product_id,
+    quantity,
+    unit_id,
+    subtotal,
+    total_quantity,
+    created_at
+)
+FROM '/csv/contract_products.csv'
+WITH (FORMAT csv, HEADER true);
+
+COPY transaction.contract_schedules (
+    contract_id,
+    delivery_day,
+    delivery_date,
+    delivery_time,
+    created_at
+)
+FROM '/csv/contract_schedules.csv'
+WITH (FORMAT csv, HEADER true);
 
