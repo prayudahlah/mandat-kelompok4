@@ -91,7 +91,7 @@ INSERT INTO reference.checkout_statuses (code) VALUES
     ('expired'),
     ('awaiting_payment'),
     ('paid'),
-    ('refunded'),
+    ('refunded');
 
 -- 3. order_statuses
 INSERT INTO reference.order_statuses (code) VALUES
@@ -102,7 +102,7 @@ INSERT INTO reference.order_statuses (code) VALUES
     ('delivered'),
     ('cancelled'),
     ('returned'),
-    ('on_hold'),
+    ('on_hold');
 
 -- 4. payment_statuses
 INSERT INTO reference.payment_statuses (code) VALUES
@@ -113,7 +113,7 @@ INSERT INTO reference.payment_statuses (code) VALUES
     ('failed'),
     ('expired'),
     ('refunding'),
-    ('cancelled'),
+    ('cancelled');
 
 -- 5. shipment_statuses
 INSERT INTO reference.shipment_statuses (code) VALUES
@@ -156,7 +156,7 @@ INSERT INTO reference.product_categories (name, parent_id) VALUES
     ('Tanaman Hias & Bunga', NULL),
     ('Hasil Hutan Non-Kayu', NULL);
 
--- Anak kategori 
+-- Anak kategori
 INSERT INTO reference.product_categories (name, parent_id)
 SELECT 'Sayuran Daun', id FROM reference.product_categories WHERE name = 'Sayuran';
 INSERT INTO reference.product_categories (name, parent_id)
@@ -203,9 +203,8 @@ INSERT INTO reference.product_categories (name, parent_id)
 SELECT 'Madu', id FROM reference.product_categories WHERE name = 'Hasil Hutan Non-Kayu';
 INSERT INTO reference.product_categories (name, parent_id)
 SELECT 'Rotan & Bambu', id FROM reference.product_categories WHERE name = 'Hasil Hutan Non-Kayu';
-INSERT INTO reference.product_categories (name, parent_id)
 
--- 9. provinces 
+-- 9. provinces
 INSERT INTO reference.provinces (name) VALUES
     ('Aceh'),
     ('Sumatera Utara'),
@@ -246,7 +245,7 @@ INSERT INTO reference.provinces (name) VALUES
     ('Papua Pegunungan'),
     ('Papua Barat Daya');
 
--- 10. cities 
+-- 10. cities
 INSERT INTO reference.cities (name, province_id) VALUES
     -- Aceh
     ('Banda Aceh', (SELECT id FROM reference.provinces WHERE name = 'Aceh')),
