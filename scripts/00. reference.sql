@@ -76,9 +76,12 @@ CREATE TABLE reference.cities (
 --- INSERT DATA REFERENSI ----
 --- 1. units
 INSERT INTO reference.units (name) VALUES
-    ('Kilogram'), ('Gram'), ('Ton'), ('Kuintal'), ('Karung'),
-    ('Ikat'), ('Ekor'), ('Liter'), ('Ons'), ('Butir'),
-    ('Sisir'), ('Pohon');
+    ('Kilogram'), 
+    ('Gram'), 
+    ('Ton'), 
+    ('Kuintal'), 
+    ('Liter'), 
+    ('Ons'); 
 
 -- 2. checkout_statuses
 INSERT INTO reference.checkout_statuses (code) VALUES
@@ -103,8 +106,7 @@ INSERT INTO reference.order_statuses (code) VALUES
     ('cancelled'),
     ('returned'),
     ('on_hold'),
-    ('awaiting_payment'),
-    ('partially_shipped');
+    ('on_hold');
 
 -- 4. payment_statuses
 INSERT INTO reference.payment_statuses (code) VALUES
@@ -114,23 +116,18 @@ INSERT INTO reference.payment_statuses (code) VALUES
     ('pending_verification'),
     ('failed'),
     ('expired'),
-    ('partial'),
     ('refunding'),
     ('cancelled'),
-    ('chargeback');
 
 -- 5. shipment_statuses
 INSERT INTO reference.shipment_statuses (code) VALUES
     ('pending'),
     ('picked_up'),
-    ('in_transit'),
     ('delivered'),
     ('returned'),
-    ('processing'),
     ('on_hold'),
     ('out_for_delivery'),
-    ('failed_attempt'),
-    ('lost');
+    ('failed_attempt');
 
 -- 6. contract_statuses
 INSERT INTO reference.contract_statuses (code) VALUES
@@ -153,7 +150,6 @@ INSERT INTO reference.payment_methods (name) VALUES
     ('GoPay'),
     ('OVO'),
     ('Dana'),
-    ('Kartu Kredit'),
     ('Debit Online');
 
 -- 8. product_categories 
@@ -166,9 +162,6 @@ INSERT INTO reference.product_categories (name, parent_id) VALUES
     ('Rempah-rempah & Bumbu', NULL),
     ('Tanaman Perkebunan', NULL),
     ('Tanaman Hias & Bunga', NULL),
-    ('Hasil Ternak', NULL),
-    ('Hasil Perikanan', NULL),
-    ('Produk Olahan Hasil Panen', NULL),
     ('Hasil Hutan Non-Kayu', NULL),
     ('Pupuk dan Pestisida', NULL);
 
@@ -216,38 +209,10 @@ SELECT 'Kelapa & Turunannya', id FROM reference.product_categories WHERE name = 
 INSERT INTO reference.product_categories (name, parent_id)
 SELECT 'Tanaman Hias Daun', id FROM reference.product_categories WHERE name = 'Tanaman Hias & Bunga';
 INSERT INTO reference.product_categories (name, parent_id)
-SELECT 'Bunga Potong', id FROM reference.product_categories WHERE name = 'Tanaman Hias & Bunga';
-INSERT INTO reference.product_categories (name, parent_id)
-SELECT 'Daging Sapi', id FROM reference.product_categories WHERE name = 'Hasil Ternak';
-INSERT INTO reference.product_categories (name, parent_id)
-SELECT 'Daging Ayam & Unggas', id FROM reference.product_categories WHERE name = 'Hasil Ternak';
-INSERT INTO reference.product_categories (name, parent_id)
-SELECT 'Telur', id FROM reference.product_categories WHERE name = 'Hasil Ternak';
-INSERT INTO reference.product_categories (name, parent_id)
-SELECT 'Ikan Air Tawar', id FROM reference.product_categories WHERE name = 'Hasil Perikanan';
-INSERT INTO reference.product_categories (name, parent_id)
-SELECT 'Ikan Air Laut', id FROM reference.product_categories WHERE name = 'Hasil Perikanan';
-INSERT INTO reference.product_categories (name, parent_id)
-SELECT 'Beras & Menir', id FROM reference.product_categories WHERE name = 'Produk Olahan Hasil Panen';
-INSERT INTO reference.product_categories (name, parent_id)
-SELECT 'Gula Aren/ Semut', id FROM reference.product_categories WHERE name = 'Produk Olahan Hasil Panen';
-INSERT INTO reference.product_categories (name, parent_id)
-SELECT 'Minyak Kelapa/ VCO', id FROM reference.product_categories WHERE name = 'Produk Olahan Hasil Panen';
-INSERT INTO reference.product_categories (name, parent_id)
 SELECT 'Madu', id FROM reference.product_categories WHERE name = 'Hasil Hutan Non-Kayu';
 INSERT INTO reference.product_categories (name, parent_id)
 SELECT 'Rotan & Bambu', id FROM reference.product_categories WHERE name = 'Hasil Hutan Non-Kayu';
 INSERT INTO reference.product_categories (name, parent_id)
-SELECT 'Pupuk Organik', id FROM reference.product_categories WHERE name = 'Pupuk dan Pestisida';
-INSERT INTO reference.product_categories (name, parent_id)
-SELECT 'Pupuk Anorganik', id FROM reference.product_categories WHERE name = 'Pupuk dan Pestisida';
-INSERT INTO reference.product_categories (name, parent_id)
-SELECT 'Pestisida Nabati', id FROM reference.product_categories WHERE name = 'Pupuk dan Pestisida';
-INSERT INTO reference.product_categories (name, parent_id)
-SELECT 'Pestisida Kimia', id FROM reference.product_categories WHERE name = 'Pupuk dan Pestisida';
-INSERT INTO reference.product_categories (name, parent_id)
-SELECT 'Media Tanam & Kompos', id FROM reference.product_categories WHERE name = 'Pupuk dan Pestisida';
-
 
 -- 9. provinces 
 INSERT INTO reference.provinces (name) VALUES
