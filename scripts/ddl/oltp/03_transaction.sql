@@ -4,13 +4,19 @@ CREATE SCHEMA IF NOT EXISTS transaction;
 -- FK: seller_id -> master.users.id
 -- FK: buyer_id -> master.users.id
 -- FK: product_id -> master.products.id (nullable)
-DO $$
-BEGIN
-    SET LOCAL search_path TO transaction;
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'negotiation_status_enum') THEN
-        CREATE TYPE transaction.negotiation_status_enum AS ENUM ('accepted', 'canceled', 'rejected', 'ongoing');
-    END IF;
-END
+DO
+$$
+    BEGIN
+        SET LOCAL search_path TO transaction;
+        IF NOT EXISTS (
+            SELECT 1
+            FROM pg_type
+            WHERE
+                typname = 'negotiation_status_enum'
+        ) THEN
+            CREATE TYPE transaction.negotiation_status_enum AS ENUM ('accepted', 'canceled', 'rejected', 'ongoing');
+        END IF;
+    END
 $$;
 
 CREATE TABLE IF NOT EXISTS transaction.negotiations (
@@ -18,7 +24,7 @@ CREATE TABLE IF NOT EXISTS transaction.negotiations (
     seller_id             BIGINT                              NOT NULL,
     buyer_id              BIGINT                              NOT NULL,
     product_id            BIGINT                              NULL,
-    agreed_price_offer    DECIMAL(10, 2)                      NOT NULL,
+    agreed_price_offer    DECIMAL(12, 2)                      NOT NULL,
     agreed_unit_id        INT                                 NOT NULL,
     agreed_quantity_offer DECIMAL(10, 2)                      NOT NULL,
     valid_until           TIMESTAMP                           NOT NULL,
@@ -47,13 +53,19 @@ CREATE TABLE IF NOT EXISTS transaction.negotiations (
 
 -- 2. Chat Negosiasi
 -- FK: negotiation_id -> transaction.negotiations.id
-DO $$
-BEGIN
-    SET LOCAL search_path TO transaction;
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'turn_owner_enum') THEN
-        CREATE TYPE transaction.turn_owner_enum AS ENUM ('seller', 'buyer');
-    END IF;
-END
+DO
+$$
+    BEGIN
+        SET LOCAL search_path TO transaction;
+        IF NOT EXISTS (
+            SELECT 1
+            FROM pg_type
+            WHERE
+                typname = 'turn_owner_enum'
+        ) THEN
+            CREATE TYPE transaction.turn_owner_enum AS ENUM ('seller', 'buyer');
+        END IF;
+    END
 $$;
 
 CREATE TABLE IF NOT EXISTS transaction.negotiation_chats (
@@ -61,7 +73,7 @@ CREATE TABLE IF NOT EXISTS transaction.negotiation_chats (
     negotiation_id BIGINT                      NOT NULL,
     turn_order     INT                         NOT NULL,
     turn_owner     transaction.turn_owner_enum NOT NULL,
-    offer_price    DECIMAL(10, 2)              NOT NULL,
+    offer_price    DECIMAL(12, 2)              NOT NULL,
     unit_id        INT                         NOT NULL,
     quantity_offer DECIMAL(10, 2)              NOT NULL,
     description    TEXT                        NULL,
@@ -83,16 +95,16 @@ CREATE TABLE IF NOT EXISTS transaction.negotiation_chats (
 -- FK: buyer_id -> master.users.id
 CREATE TABLE IF NOT EXISTS transaction.carts (
     id         BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    buyer_id   BIGINT NOT NULL,
+    user_id    BIGINT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT fk_carts_buyer FOREIGN KEY (buyer_id)
+    CONSTRAINT fk_carts_buyer FOREIGN KEY (user_id)
         REFERENCES master.users (id) ON DELETE CASCADE
 );
 
 -- 4. Item Keranjang
 -- FK: cart_id -> transaction.carts.id
--- FK: product_id -> reference.products.id
+-- FK: product_id -> master.products.id
 -- FK: unit_id -> reference.units.id
 CREATE TABLE IF NOT EXISTS transaction.cart_items (
     id         BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
@@ -112,13 +124,42 @@ CREATE TABLE IF NOT EXISTS transaction.cart_items (
     CONSTRAINT unique_cart_product_unit UNIQUE (cart_id, product_id)
 );
 
--- 5. Checkouts
+-- 5. Pengiriman
+-- FK: shipment_status_id -> reference.shipment_statuses.id
+CREATE TABLE IF NOT EXISTS transaction.shipments (
+    id                 BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    courier_name       VARCHAR(50) NULL,
+    province_id        BIGINT      NULL,
+    city_id            BIGINT      NULL,
+    shipping_address   TEXT        NOT NULL,
+    shipment_status_id INT         NOT NULL,
+    shipped_at         TIMESTAMP   NULL,
+    delivered_at       TIMESTAMP   NULL,
+    created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_shipments_province FOREIGN KEY (province_id)
+        REFERENCES reference.provinces (id),
+    CONSTRAINT fk_shipments_city FOREIGN KEY (city_id)
+        REFERENCES reference.cities (id),
+    CONSTRAINT fk_shipments_shipment_status FOREIGN KEY (shipment_status_id)
+        REFERENCES reference.shipment_statuses (id),
+
+    -- delivered_date tidak boleh lebih kecil dari shipped_date
+    CONSTRAINT chk_shipment_dates CHECK (
+        delivered_at IS NULL OR
+        shipped_at IS NULL OR
+        delivered_at >= shipped_at
+        )
+);
+
+-- 6. Checkouts
 -- FK: buyer_id -> master.users.id
 -- FK: checkout_status_id -> reference.checkout_statuses.id
 CREATE TABLE IF NOT EXISTS transaction.checkouts (
     id                 BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     buyer_id           BIGINT         NOT NULL,
-    total_amount       DECIMAL(12, 2) NOT NULL DEFAULT 0,
+    total_amount       DECIMAL(14, 2) NOT NULL DEFAULT 0,
     shipping_address   TEXT           NOT NULL,
     checkout_status_id INT            NOT NULL,
     created_at         TIMESTAMP               DEFAULT CURRENT_TIMESTAMP,
@@ -130,58 +171,60 @@ CREATE TABLE IF NOT EXISTS transaction.checkouts (
         REFERENCES reference.checkout_statuses (id)
 );
 
--- 6. Pesanan
--- FK: buyer_id -> master.users.id
--- FK: order_status_id -> reference.order_statuses.id
--- FK: payment_status_id -> reference.payment_statuses.id
+-- 7. Pesanan
+-- FK: checkout_id -> transaction.checkouts.id
+-- FK: seller_id -> master.users.id
+-- FK: shipment_id -> transaction.shipments.id
 CREATE TABLE IF NOT EXISTS transaction.orders (
-    id              BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    checkout_id     BIGINT         NOT NULL,
-    order_number    VARCHAR(30)    NOT NULL UNIQUE,
-    buyer_id        BIGINT         NOT NULL,
-    seller_id       BIGINT         NOT NULL,
-    subtotal        DECIMAL(12, 2) NOT NULL,
-    order_status_id INT            NOT NULL,
-    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    id           BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    checkout_id  BIGINT         NOT NULL,
+    shipment_id  BIGINT         NOT NULL UNIQUE,
+    order_number VARCHAR(30)    NOT NULL UNIQUE,
+    seller_id    BIGINT         NOT NULL,
+    subtotal     DECIMAL(14, 2) NOT NULL,
+    created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_orders_checkout FOREIGN KEY (checkout_id)
         REFERENCES transaction.checkouts (id) ON DELETE CASCADE,
-    CONSTRAINT fk_orders_buyer FOREIGN KEY (buyer_id)
-        REFERENCES master.users (id),
+    CONSTRAINT fk_orders_shipment FOREIGN KEY (shipment_id)
+        REFERENCES transaction.shipments (id),
     CONSTRAINT fk_orders_seller FOREIGN KEY (seller_id)
         REFERENCES master.users (id),
-    CONSTRAINT fk_orders_order_status FOREIGN KEY (order_status_id)
-        REFERENCES reference.order_statuses (id)
+
+    CONSTRAINT unique_orders_checkout_seller UNIQUE (checkout_id, seller_id)
 );
 
--- 7. Item Pesanan
+-- 8. Item Pesanan
 -- FK: order_id -> transaction.orders.id
--- FK: product_id -> reference.products.id
+-- FK: product_id -> master.products.id
 -- FK: unit_id -> reference.units.id
 -- FK: negotiation_id -> transaction.negotiations.id (nullable)
 CREATE TABLE IF NOT EXISTS transaction.order_items (
-    id             BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    order_id       BIGINT         NOT NULL,
-    product_id     BIGINT         NOT NULL,
-    quantity       DECIMAL(10, 2) NOT NULL,
-    unit_id        INT            NOT NULL,
-    price_per_unit DECIMAL(12, 2) NOT NULL,
-    discount       DECIMAL(12, 2) DEFAULT 0,
-    subtotal       DECIMAL(12, 2) NOT NULL,
-    negotiation_id BIGINT         NULL,
+    id                   BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    order_id             BIGINT         NOT NULL,
+    product_id           BIGINT         NOT NULL,
+    order_item_status_id INT            NOT NULL,
+    quantity             DECIMAL(10, 2) NOT NULL,
+    unit_id              INT            NOT NULL,
+    price_per_unit       DECIMAL(12, 2) NOT NULL,
+    discount             DECIMAL(12, 2) DEFAULT 0,
+    subtotal             DECIMAL(14, 2) NOT NULL,
+    negotiation_id       BIGINT         NULL,
 
     CONSTRAINT fk_order_items_order FOREIGN KEY (order_id)
         REFERENCES transaction.orders (id) ON DELETE CASCADE,
     CONSTRAINT fk_order_items_product FOREIGN KEY (product_id)
         REFERENCES master.products (id),
+    CONSTRAINT fk_order_items_order_item_status FOREIGN KEY (order_item_status_id)
+        REFERENCES reference.order_item_statuses (id),
     CONSTRAINT fk_order_items_unit FOREIGN KEY (unit_id)
         REFERENCES reference.units (id),
     CONSTRAINT fk_order_items_negotiation FOREIGN KEY (negotiation_id)
         REFERENCES transaction.negotiations (id)
 );
 
--- 8. Pembayaran
+-- 9. Pembayaran
 -- FK: checkout_id -> transaction.checkouts.id
 -- FK: payment_method_id -> reference.payment_methods.id
 -- FK: payment_status_id -> reference.payment_statuses.id
@@ -204,50 +247,32 @@ CREATE TABLE IF NOT EXISTS transaction.payments (
         REFERENCES reference.payment_statuses (id)
 );
 
--- 9. Pengiriman
--- FK: order_id -> transaction.orders.id
--- FK: shipment_status_id -> reference.shipment_statuses.id
-CREATE TABLE IF NOT EXISTS transaction.shipments (
-    id                 BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    order_id           BIGINT      NOT NULL,
-    courier_name       VARCHAR(50) NULL,
-    shipment_status_id INT         NOT NULL,
-    shipped_date       TIMESTAMP   NULL,
-    delivered_date     TIMESTAMP   NULL,
-    created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT fk_shipments_order FOREIGN KEY (order_id)
-        REFERENCES transaction.orders (id) ON DELETE RESTRICT,
-    CONSTRAINT fk_shipments_shipment_status FOREIGN KEY (shipment_status_id)
-        REFERENCES reference.shipment_statuses (id),
-
-    -- delivered_date tidak boleh lebih kecil dari shipped_date
-    CONSTRAINT chk_shipment_dates CHECK (
-        delivered_date IS NULL OR
-        shipped_date IS NULL OR
-        delivered_date >= shipped_date
-        )
-);
-
 -- 10. Kontrak Kemitraan
 -- FK: buyer_id -> master.users.id
 -- FK: seller_id -> master.users.id
+-- FK: shipment_id -> transaction.shipments.id
 -- FK: contract_status_id -> reference.contract_statuses.id
 
-DO $$
-BEGIN
-    SET LOCAL search_path TO transaction;
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'contract_schedule_type') THEN
-        CREATE TYPE transaction.contract_schedule_type AS ENUM ('daily', 'weekly', 'specific_dates');
-    END IF;
-END
+DO
+$$
+    BEGIN
+        SET LOCAL search_path TO transaction;
+        IF NOT EXISTS (
+            SELECT 1
+            FROM pg_type
+            WHERE
+                typname = 'contract_schedule_type'
+        ) THEN
+            CREATE TYPE transaction.contract_schedule_type AS ENUM ('daily', 'weekly', 'specific_dates');
+        END IF;
+    END
 $$;
 
 CREATE TABLE IF NOT EXISTS transaction.contracts (
     id                 BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     buyer_id           BIGINT                             NOT NULL,
     seller_id          BIGINT                             NOT NULL,
+    shipment_id        BIGINT                             NOT NULL UNIQUE,
     total_amount       DECIMAL(14, 2)                     NOT NULL,
     delivery_location  VARCHAR(255)                       NOT NULL,
     start_date         DATE                               NOT NULL,
@@ -263,6 +288,8 @@ CREATE TABLE IF NOT EXISTS transaction.contracts (
         REFERENCES master.users (id),
     CONSTRAINT fk_contracts_seller FOREIGN KEY (seller_id)
         REFERENCES master.users (id),
+    CONSTRAINT fk_contracts_shipment FOREIGN KEY (shipment_id)
+        REFERENCES transaction.shipments (id),
     CONSTRAINT fk_contracts_status FOREIGN KEY (contract_status_id)
         REFERENCES reference.contract_statuses (id),
 
@@ -286,7 +313,7 @@ CREATE TABLE IF NOT EXISTS transaction.contract_products (
     product_id     BIGINT         NOT NULL,
     quantity       DECIMAL(10, 2) NOT NULL,
     unit_id        INT            NOT NULL,
-    subtotal       DECIMAL(10, 2) NOT NULL,
+    subtotal       DECIMAL(14, 2) NOT NULL,
     total_quantity DECIMAL(10, 2) NULL,
     created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
@@ -308,13 +335,19 @@ CREATE TABLE IF NOT EXISTS transaction.contract_products (
 
 -- 12. Jadwal dari Kontrak
 -- FK: contract_id -> transaction.contracts.id
-DO $$
-BEGIN
-    SET LOCAL search_path TO transaction;
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'contract_delivery_day') THEN
-        CREATE TYPE transaction.contract_delivery_day AS ENUM ('monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday');
-    END IF;
-END
+DO
+$$
+    BEGIN
+        SET LOCAL search_path TO transaction;
+        IF NOT EXISTS (
+            SELECT 1
+            FROM pg_type
+            WHERE
+                typname = 'contract_delivery_day'
+        ) THEN
+            CREATE TYPE transaction.contract_delivery_day AS ENUM ('monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday');
+        END IF;
+    END
 $$;
 
 CREATE TABLE IF NOT EXISTS transaction.contract_schedules (
@@ -328,151 +361,3 @@ CREATE TABLE IF NOT EXISTS transaction.contract_schedules (
     CONSTRAINT fk_cs_contract FOREIGN KEY (contract_id)
         REFERENCES transaction.contracts (id) ON DELETE CASCADE
 );
-
--- Load data from CSV
-COPY transaction.negotiations (
-    seller_id,
-    buyer_id,
-    product_id,
-    agreed_price_offer,
-    agreed_unit_id,
-    agreed_quantity_offer,
-    valid_until,
-    status,
-    created_at,
-    updated_at
-)
-FROM '/csv/negotiations.csv'
-WITH (FORMAT csv, HEADER true);
-
-COPY transaction.negotiation_chats (
-    negotiation_id,
-    turn_order,
-    turn_owner,
-    offer_price,
-    unit_id,
-    quantity_offer,
-    description,
-    created_at
-)
-FROM '/csv/negotiation_chats.csv'
-WITH (FORMAT csv, HEADER true);
-
-COPY transaction.carts (
-    buyer_id,
-    created_at
-)
-FROM '/csv/carts.csv'
-WITH (FORMAT csv, HEADER true);
-
-COPY transaction.cart_items (
-    cart_id,
-    product_id,
-    quantity,
-    unit_id,
-    added_at
-)
-FROM '/csv/cart_items.csv'
-WITH (FORMAT csv, HEADER true);
-
-COPY transaction.checkouts (
-    buyer_id,
-    total_amount,
-    shipping_address,
-    checkout_status_id,
-    created_at,
-    updated_at
-)
-FROM '/csv/checkouts.csv'
-WITH (FORMAT csv, HEADER true);
-
-COPY transaction.orders (
-    checkout_id,
-    order_number,
-    buyer_id,
-    seller_id,
-    subtotal,
-    order_status_id,
-    created_at,
-    updated_at
-)
-FROM '/csv/orders.csv'
-WITH (FORMAT csv, HEADER true);
-
-COPY transaction.order_items (
-    order_id,
-    product_id,
-    quantity,
-    unit_id,
-    price_per_unit,
-    discount,
-    subtotal,
-    negotiation_id
-)
-FROM '/csv/order_items.csv'
-WITH (FORMAT csv, HEADER true);
-
-COPY transaction.payments (
-    checkout_id,
-    payment_method_id,
-    amount,
-    payment_status_id,
-    transaction_id,
-    paid_at,
-    created_at,
-    updated_at
-)
-FROM '/csv/payments.csv'
-WITH (FORMAT csv, HEADER true);
-
-COPY transaction.shipments (
-    order_id,
-    courier_name,
-    shipment_status_id,
-    shipped_date,
-    delivered_date,
-    created_at,
-    updated_at
-)
-FROM '/csv/shipments.csv'
-WITH (FORMAT csv, HEADER true);
-
-COPY transaction.contracts (
-    buyer_id,
-    seller_id,
-    total_amount,
-    delivery_location,
-    start_date,
-    end_date,
-    frequency,
-    total_shipping,
-    description,
-    contract_status_id,
-    created_at,
-    updated_at
-)
-FROM '/csv/contracts.csv'
-WITH (FORMAT csv, HEADER true);
-
-COPY transaction.contract_products (
-    contract_id,
-    product_id,
-    quantity,
-    unit_id,
-    subtotal,
-    total_quantity,
-    created_at
-)
-FROM '/csv/contract_products.csv'
-WITH (FORMAT csv, HEADER true);
-
-COPY transaction.contract_schedules (
-    contract_id,
-    delivery_day,
-    delivery_date,
-    delivery_time,
-    created_at
-)
-FROM '/csv/contract_schedules.csv'
-WITH (FORMAT csv, HEADER true);
-
