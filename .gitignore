@@ -4,7 +4,7 @@
 .idea
 csv/*
 scripts/query
-seeder/
+seeder
 
 # Whitelist
 !.env.example
