@@ -363,21 +363,20 @@ def build_orders_and_checkout_totals(products, negotiation_offers):
     rows = []
     order_item_rows = []
     checkout_totals = [0] * (CHECKOUTS_COUNT + 1)
-    order_totals = [0] * (ORDERS_COUNT + 1)
-    order_sellers = [0] * (ORDERS_COUNT + 1)
     seller_products = group_products_by_seller(products)
+    sellers_with_products = sorted(seller_products.keys())
     accepted_pool = build_accepted_negotiation_pool(negotiation_offers)
     start = datetime(2024, 1, 1)
     used_numbers = set()
+    checkout_order_counts = [0] * (CHECKOUTS_COUNT + 1)
     for order_id in range(1, ORDERS_COUNT + 1):
         checkout_id = ((order_id - 1) % CHECKOUTS_COUNT) + 1
-        seller_id = ((order_id - 1) % SELLER_MAX) + 1
-        seller_product_ids = seller_products.get(seller_id)
-        if not seller_product_ids:
-            seller_id = next(
-                sid for sid, product_ids in seller_products.items() if product_ids
-            )
-            seller_product_ids = seller_products[seller_id]
+        checkout_order_counts[checkout_id] += 1
+        seller_id = sellers_with_products[
+            (checkout_id + checkout_order_counts[checkout_id] - 2)
+            % len(sellers_with_products)
+        ]
+        seller_product_ids = seller_products[seller_id]
         created_at = dt_from_id(start, order_id)
         order_number = None
         while not order_number or order_number in used_numbers:
@@ -416,8 +415,6 @@ def build_orders_and_checkout_totals(products, negotiation_offers):
                     negotiation_id,
                 ]
             )
-        order_totals[order_id] = subtotal
-        order_sellers[order_id] = seller_id
         checkout_totals[checkout_id] += subtotal
         rows.append(
             [

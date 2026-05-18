@@ -1117,7 +1117,7 @@
       <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>3424</xloc>
+      <xloc>3440</xloc>
       <yloc>496</yloc>
       <attributes_kjc/>
     </entry>
@@ -1156,7 +1156,7 @@
       <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>3616</xloc>
+      <xloc>3680</xloc>
       <yloc>496</yloc>
       <attributes_kjc/>
     </entry>
@@ -1315,8 +1315,8 @@
       <from_nr>0</from_nr>
       <to_nr>0</to_nr>
       <enabled>Y</enabled>
-      <evaluation>N</evaluation>
-      <unconditional>Y</unconditional>
+      <evaluation>Y</evaluation>
+      <unconditional>N</unconditional>
     </hop>
     <hop>
       <from>Seed TX 02 - Negotiation Chats</from>
@@ -1324,8 +1324,8 @@
       <from_nr>0</from_nr>
       <to_nr>0</to_nr>
       <enabled>Y</enabled>
-      <evaluation>N</evaluation>
-      <unconditional>Y</unconditional>
+      <evaluation>Y</evaluation>
+      <unconditional>N</unconditional>
     </hop>
     <hop>
       <from>Seed TX 03 - Payments</from>
