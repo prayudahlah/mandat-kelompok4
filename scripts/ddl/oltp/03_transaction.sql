@@ -97,7 +97,7 @@ CREATE TABLE IF NOT EXISTS transaction.negotiation_chats (
 CREATE TABLE IF NOT EXISTS transaction.payments (
     id                BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     payment_method_id INT            NOT NULL,
-    amount            DECIMAL(12, 2) NOT NULL,
+    amount            DECIMAL(14, 2) NOT NULL,
     payment_status_id INT            NOT NULL,
     transaction_id    VARCHAR(100)   NULL,
     paid_at           TIMESTAMP      NULL,
