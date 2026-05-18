@@ -91,7 +91,26 @@ CREATE TABLE IF NOT EXISTS transaction.negotiation_chats (
     CONSTRAINT chk_nd_quantity_offer CHECK (quantity_offer > 0)
 );
 
--- 3. Keranjang
+-- 3. Pembayaran
+-- FK: payment_method_id -> reference.payment_methods.id
+-- FK: payment_status_id -> reference.payment_statuses.id
+CREATE TABLE IF NOT EXISTS transaction.payments (
+    id                BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    payment_method_id INT            NOT NULL,
+    amount            DECIMAL(12, 2) NOT NULL,
+    payment_status_id INT            NOT NULL,
+    transaction_id    VARCHAR(100)   NULL,
+    paid_at           TIMESTAMP      NULL,
+    created_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_payments_payment_method FOREIGN KEY (payment_method_id)
+        REFERENCES reference.payment_methods (id),
+    CONSTRAINT fk_payments_payment_status FOREIGN KEY (payment_status_id)
+        REFERENCES reference.payment_statuses (id)
+);
+
+-- 4. Keranjang
 -- FK: buyer_id -> master.users.id
 CREATE TABLE IF NOT EXISTS transaction.carts (
     id         BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
@@ -102,7 +121,7 @@ CREATE TABLE IF NOT EXISTS transaction.carts (
         REFERENCES master.users (id) ON DELETE CASCADE
 );
 
--- 4. Item Keranjang
+-- 5. Item Keranjang
 -- FK: cart_id -> transaction.carts.id
 -- FK: product_id -> master.products.id
 -- FK: unit_id -> reference.units.id
@@ -124,13 +143,13 @@ CREATE TABLE IF NOT EXISTS transaction.cart_items (
     CONSTRAINT unique_cart_product_unit UNIQUE (cart_id, product_id)
 );
 
--- 5. Pengiriman
+-- 6. Pengiriman
 -- FK: shipment_status_id -> reference.shipment_statuses.id
 CREATE TABLE IF NOT EXISTS transaction.shipments (
     id                 BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     courier_name       VARCHAR(50) NULL,
-    province_id        BIGINT      NULL,
-    city_id            BIGINT      NULL,
+    province_id        BIGINT      NOT NULL,
+    city_id            BIGINT      NOT NULL,
     shipping_address   TEXT        NOT NULL,
     shipment_status_id INT         NOT NULL,
     shipped_at         TIMESTAMP   NULL,
@@ -153,12 +172,13 @@ CREATE TABLE IF NOT EXISTS transaction.shipments (
         )
 );
 
--- 6. Checkouts
+-- 7. Checkouts
 -- FK: buyer_id -> master.users.id
 -- FK: checkout_status_id -> reference.checkout_statuses.id
 CREATE TABLE IF NOT EXISTS transaction.checkouts (
     id                 BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     buyer_id           BIGINT         NOT NULL,
+    payment_id         BIGINT         NULL UNIQUE,
     total_amount       DECIMAL(14, 2) NOT NULL DEFAULT 0,
     shipping_address   TEXT           NOT NULL,
     checkout_status_id INT            NOT NULL,
@@ -167,11 +187,13 @@ CREATE TABLE IF NOT EXISTS transaction.checkouts (
 
     CONSTRAINT fk_checkouts_buyer FOREIGN KEY (buyer_id)
         REFERENCES master.users (id),
+    CONSTRAINT fk_checkouts_payment FOREIGN KEY (payment_id)
+        REFERENCES transaction.payments (id),
     CONSTRAINT fk_checkouts_checkout_status FOREIGN KEY (checkout_status_id)
         REFERENCES reference.checkout_statuses (id)
 );
 
--- 7. Pesanan
+-- 8. Pesanan
 -- FK: checkout_id -> transaction.checkouts.id
 -- FK: seller_id -> master.users.id
 -- FK: shipment_id -> transaction.shipments.id
@@ -195,7 +217,7 @@ CREATE TABLE IF NOT EXISTS transaction.orders (
     CONSTRAINT unique_orders_checkout_seller UNIQUE (checkout_id, seller_id)
 );
 
--- 8. Item Pesanan
+-- 9. Item Pesanan
 -- FK: order_id -> transaction.orders.id
 -- FK: product_id -> master.products.id
 -- FK: unit_id -> reference.units.id
@@ -224,28 +246,6 @@ CREATE TABLE IF NOT EXISTS transaction.order_items (
         REFERENCES transaction.negotiations (id)
 );
 
--- 9. Pembayaran
--- FK: checkout_id -> transaction.checkouts.id
--- FK: payment_method_id -> reference.payment_methods.id
--- FK: payment_status_id -> reference.payment_statuses.id
-CREATE TABLE IF NOT EXISTS transaction.payments (
-    id                BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    checkout_id       BIGINT         NOT NULL,
-    payment_method_id INT            NOT NULL,
-    amount            DECIMAL(12, 2) NOT NULL,
-    payment_status_id INT            NOT NULL,
-    transaction_id    VARCHAR(100)   NULL,
-    paid_at           TIMESTAMP      NULL,
-    created_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT fk_payments_checkout FOREIGN KEY (checkout_id)
-        REFERENCES transaction.checkouts (id),
-    CONSTRAINT fk_payments_payment_method FOREIGN KEY (payment_method_id)
-        REFERENCES reference.payment_methods (id),
-    CONSTRAINT fk_payments_payment_status FOREIGN KEY (payment_status_id)
-        REFERENCES reference.payment_statuses (id)
-);
 
 -- 10. Kontrak Kemitraan
 -- FK: buyer_id -> master.users.id
@@ -273,6 +273,7 @@ CREATE TABLE IF NOT EXISTS transaction.contracts (
     buyer_id           BIGINT                             NOT NULL,
     seller_id          BIGINT                             NOT NULL,
     shipment_id        BIGINT                             NOT NULL UNIQUE,
+    payment_id         BIGINT                             NULL UNIQUE,
     total_amount       DECIMAL(14, 2)                     NOT NULL,
     delivery_location  VARCHAR(255)                       NOT NULL,
     start_date         DATE                               NOT NULL,
@@ -290,6 +291,8 @@ CREATE TABLE IF NOT EXISTS transaction.contracts (
         REFERENCES master.users (id),
     CONSTRAINT fk_contracts_shipment FOREIGN KEY (shipment_id)
         REFERENCES transaction.shipments (id),
+    CONSTRAINT fk_contracts_payment FOREIGN KEY (payment_id)
+        REFERENCES transaction.payments (id),
     CONSTRAINT fk_contracts_status FOREIGN KEY (contract_status_id)
         REFERENCES reference.contract_statuses (id),
 
