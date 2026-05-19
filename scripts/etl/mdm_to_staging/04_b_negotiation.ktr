@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <transformation>
   <info>
-    <name>03_b_product</name>
+    <name>04_b_negotiation</name>
     <description/>
     <extended_description/>
     <trans_version/>
@@ -426,9 +426,9 @@
     <clusterschemas>
     </clusterschemas>
     <created_user>-</created_user>
-    <created_date>2026/05/19 14:56:41.944</created_date>
+    <created_date>2026/05/19 15:55:15.329</created_date>
     <modified_user>-</modified_user>
-    <modified_date>2026/05/19 14:56:41.944</modified_date>
+    <modified_date>2026/05/19 15:55:15.329</modified_date>
     <key_for_session_key/>
     <is_key_private>N</is_key_private>
   </info>
@@ -436,13 +436,13 @@
   </notepads>
   <order>
     <hop>
-      <from>Product Input</from>
-      <to>Product Output</to>
+      <from>Negotiation Input</from>
+      <to>Negotiation Output</to>
       <enabled>Y</enabled>
     </hop>
   </order>
   <step>
-    <name>Product Input</name>
+    <name>Negotiation Input</name>
     <type>TableInput</type>
     <description/>
     <distribute>Y</distribute>
@@ -454,14 +454,17 @@
     </partitioning>
     <connection>panenku_postgres_mdm_hub</connection>
     <sql>SELECT
-  id
-, seller_id
-, category_id
-, "name"
-, unit_id
-, price_per_unit
-, deleted_at
-FROM master.products
+    n.id
+    , n.seller_id
+    , n.buyer_id
+    , n.product_id
+    , n.agreed_price_offer
+    , n.agreed_unit_id
+    , n.agreed_quantity_offer
+    , n.status
+    , p.price_per_unit AS initial_price_offer
+FROM "transaction".negotiations n
+JOIN master.products p ON n.product_id = p.id
 </sql>
     <limit>0</limit>
     <lookup/>
@@ -519,35 +522,12 @@ FROM master.products
       <value-meta>
         <type>Integer</type>
         <storagetype>normal</storagetype>
-        <name>category_id</name>
+        <name>buyer_id</name>
         <length>15</length>
         <precision>0</precision>
         <origin>Province Input</origin>
-        <comments>category_id</comments>
+        <comments>buyer_id</comments>
         <conversion_Mask>####0;-####0</conversion_Mask>
-        <decimal_symbol>.</decimal_symbol>
-        <grouping_symbol>,</grouping_symbol>
-        <currency_symbol/>
-        <trim_type>none</trim_type>
-        <case_insensitive>N</case_insensitive>
-        <collator_disabled>Y</collator_disabled>
-        <collator_strength>0</collator_strength>
-        <sort_descending>N</sort_descending>
-        <output_padding>N</output_padding>
-        <date_format_lenient>N</date_format_lenient>
-        <date_format_locale>en_US</date_format_locale>
-        <date_format_timezone>Asia/Jakarta</date_format_timezone>
-        <lenient_string_to_number>N</lenient_string_to_number>
-      </value-meta>
-      <value-meta>
-        <type>String</type>
-        <storagetype>normal</storagetype>
-        <name>name</name>
-        <length>150</length>
-        <precision>-1</precision>
-        <origin>Province Input</origin>
-        <comments>name</comments>
-        <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
         <grouping_symbol>,</grouping_symbol>
         <currency_symbol/>
@@ -565,11 +545,11 @@ FROM master.products
       <value-meta>
         <type>Integer</type>
         <storagetype>normal</storagetype>
-        <name>unit_id</name>
-        <length>9</length>
+        <name>product_id</name>
+        <length>15</length>
         <precision>0</precision>
         <origin>Province Input</origin>
-        <comments>unit_id</comments>
+        <comments>product_id</comments>
         <conversion_Mask>####0;-####0</conversion_Mask>
         <decimal_symbol>.</decimal_symbol>
         <grouping_symbol>,</grouping_symbol>
@@ -588,11 +568,11 @@ FROM master.products
       <value-meta>
         <type>Number</type>
         <storagetype>normal</storagetype>
-        <name>price_per_unit</name>
+        <name>agreed_price_offer</name>
         <length>12</length>
         <precision>2</precision>
         <origin>Province Input</origin>
-        <comments>price_per_unit</comments>
+        <comments>agreed_price_offer</comments>
         <conversion_Mask>####0.0#########;-####0.0#########</conversion_Mask>
         <decimal_symbol>.</decimal_symbol>
         <grouping_symbol>,</grouping_symbol>
@@ -609,14 +589,83 @@ FROM master.products
         <lenient_string_to_number>N</lenient_string_to_number>
       </value-meta>
       <value-meta>
-        <type>Timestamp</type>
+        <type>Integer</type>
         <storagetype>normal</storagetype>
-        <name>deleted_at</name>
-        <length>6</length>
+        <name>agreed_unit_id</name>
+        <length>9</length>
+        <precision>0</precision>
+        <origin>Province Input</origin>
+        <comments>agreed_unit_id</comments>
+        <conversion_Mask>####0;-####0</conversion_Mask>
+        <decimal_symbol>.</decimal_symbol>
+        <grouping_symbol>,</grouping_symbol>
+        <currency_symbol/>
+        <trim_type>none</trim_type>
+        <case_insensitive>N</case_insensitive>
+        <collator_disabled>Y</collator_disabled>
+        <collator_strength>0</collator_strength>
+        <sort_descending>N</sort_descending>
+        <output_padding>N</output_padding>
+        <date_format_lenient>N</date_format_lenient>
+        <date_format_locale>en_US</date_format_locale>
+        <date_format_timezone>Asia/Jakarta</date_format_timezone>
+        <lenient_string_to_number>N</lenient_string_to_number>
+      </value-meta>
+      <value-meta>
+        <type>Number</type>
+        <storagetype>normal</storagetype>
+        <name>agreed_quantity_offer</name>
+        <length>10</length>
+        <precision>2</precision>
+        <origin>Province Input</origin>
+        <comments>agreed_quantity_offer</comments>
+        <conversion_Mask>####0.0#########;-####0.0#########</conversion_Mask>
+        <decimal_symbol>.</decimal_symbol>
+        <grouping_symbol>,</grouping_symbol>
+        <currency_symbol/>
+        <trim_type>none</trim_type>
+        <case_insensitive>N</case_insensitive>
+        <collator_disabled>Y</collator_disabled>
+        <collator_strength>0</collator_strength>
+        <sort_descending>N</sort_descending>
+        <output_padding>N</output_padding>
+        <date_format_lenient>N</date_format_lenient>
+        <date_format_locale>en_US</date_format_locale>
+        <date_format_timezone>Asia/Jakarta</date_format_timezone>
+        <lenient_string_to_number>N</lenient_string_to_number>
+      </value-meta>
+      <value-meta>
+        <type>String</type>
+        <storagetype>normal</storagetype>
+        <name>status</name>
+        <length>2147483647</length>
         <precision>-1</precision>
         <origin>Province Input</origin>
-        <comments>deleted_at</comments>
+        <comments>status</comments>
         <conversion_Mask/>
+        <decimal_symbol>.</decimal_symbol>
+        <grouping_symbol>,</grouping_symbol>
+        <currency_symbol/>
+        <trim_type>none</trim_type>
+        <case_insensitive>N</case_insensitive>
+        <collator_disabled>Y</collator_disabled>
+        <collator_strength>0</collator_strength>
+        <sort_descending>N</sort_descending>
+        <output_padding>N</output_padding>
+        <date_format_lenient>N</date_format_lenient>
+        <date_format_locale>en_US</date_format_locale>
+        <date_format_timezone>Asia/Jakarta</date_format_timezone>
+        <lenient_string_to_number>N</lenient_string_to_number>
+      </value-meta>
+      <value-meta>
+        <type>Number</type>
+        <storagetype>normal</storagetype>
+        <name>initial_price_offer</name>
+        <length>12</length>
+        <precision>2</precision>
+        <origin>Province Input</origin>
+        <comments>initial_price_offer</comments>
+        <conversion_Mask>####0.0#########;-####0.0#########</conversion_Mask>
         <decimal_symbol>.</decimal_symbol>
         <grouping_symbol>,</grouping_symbol>
         <currency_symbol/>
@@ -641,13 +690,13 @@ FROM master.products
       </output>
     </remotesteps>
     <GUI>
-      <xloc>256</xloc>
-      <yloc>176</yloc>
+      <xloc>192</xloc>
+      <yloc>160</yloc>
       <draw>Y</draw>
     </GUI>
   </step>
   <step>
-    <name>Product Output</name>
+    <name>Negotiation Output</name>
     <type>TableOutput</type>
     <description/>
     <distribute>Y</distribute>
@@ -659,7 +708,7 @@ FROM master.products
     </partitioning>
     <connection>panenku_sqlserver_staging</connection>
     <schema>dbo</schema>
-    <table>stg_products</table>
+    <table>stg_negotiations</table>
     <commit>1000</commit>
     <truncate>N</truncate>
     <ignore_errors>N</ignore_errors>
@@ -676,11 +725,7 @@ FROM master.products
     <return_field/>
     <fields>
       <field>
-        <column_name>deleted_at</column_name>
-        <stream_name>deleted_at</stream_name>
-      </field>
-      <field>
-        <column_name>product_id</column_name>
+        <column_name>negotiation_id</column_name>
         <stream_name>id</stream_name>
       </field>
       <field>
@@ -688,20 +733,32 @@ FROM master.products
         <stream_name>seller_id</stream_name>
       </field>
       <field>
-        <column_name>category_id</column_name>
-        <stream_name>category_id</stream_name>
+        <column_name>buyer_id</column_name>
+        <stream_name>buyer_id</stream_name>
       </field>
       <field>
-        <column_name>product_name</column_name>
-        <stream_name>name</stream_name>
+        <column_name>product_id</column_name>
+        <stream_name>product_id</stream_name>
       </field>
       <field>
-        <column_name>unit_id</column_name>
-        <stream_name>unit_id</stream_name>
+        <column_name>agreed_unit_id</column_name>
+        <stream_name>agreed_unit_id</stream_name>
       </field>
       <field>
-        <column_name>price_per_unit</column_name>
-        <stream_name>price_per_unit</stream_name>
+        <column_name>status</column_name>
+        <stream_name>status</stream_name>
+      </field>
+      <field>
+        <column_name>agreed_price</column_name>
+        <stream_name>agreed_price_offer</stream_name>
+      </field>
+      <field>
+        <column_name>agreed_quantity</column_name>
+        <stream_name>agreed_quantity_offer</stream_name>
+      </field>
+      <field>
+        <column_name>initial_offer_price</column_name>
+        <stream_name>initial_price_offer</stream_name>
       </field>
     </fields>
     <attributes/>
@@ -713,8 +770,8 @@ FROM master.products
       </output>
     </remotesteps>
     <GUI>
-      <xloc>432</xloc>
-      <yloc>176</yloc>
+      <xloc>368</xloc>
+      <yloc>160</yloc>
       <draw>Y</draw>
     </GUI>
   </step>

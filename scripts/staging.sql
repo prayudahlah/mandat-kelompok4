@@ -99,15 +99,11 @@ GO
 CREATE TABLE stg_shipments (
     shipment_id BIGINT PRIMARY KEY,
     destination_province_id BIGINT NOT NULL,
-    origin_province_id BIGINT NOT NULL,
     shipped_at DATETIME2,
     delivered_at DATETIME2,
-    deleted_at DATETIME2,
     
     CONSTRAINT fk_shipment_destination_province 
         FOREIGN KEY (destination_province_id) REFERENCES stg_provinces(province_id),
-    CONSTRAINT fk_shipment_origin_province 
-        FOREIGN KEY (origin_province_id) REFERENCES stg_provinces(province_id),
     CONSTRAINT chk_shipment_dates CHECK (
         delivered_at IS NULL OR 
         shipped_at IS NULL OR 
@@ -124,13 +120,15 @@ CREATE TABLE stg_orders (
     order_number VARCHAR(50) NOT NULL,
     shipment_id BIGINT NOT NULL,
     seller_id BIGINT NOT NULL,
+    buyer_id BIGINT NOT NULL,
     created_at DATETIME2 NOT NULL,
-    deleted_at DATETIME2,
-    
+
     CONSTRAINT fk_order_shipment 
         FOREIGN KEY (shipment_id) REFERENCES stg_shipments(shipment_id),
     CONSTRAINT fk_order_seller 
         FOREIGN KEY (seller_id) REFERENCES stg_users(user_id),
+    CONSTRAINT fk_order_buyer
+        FOREIGN KEY (buyer_id) REFERENCES stg_users(user_id),
     CONSTRAINT uq_orders_number UNIQUE (order_number),
     CONSTRAINT uq_orders_shipment UNIQUE (shipment_id)
 );
@@ -143,32 +141,23 @@ CREATE TABLE stg_order_items (
     order_item_id BIGINT PRIMARY KEY,
     order_id BIGINT NOT NULL,
     product_id BIGINT NOT NULL,
-    seller_id BIGINT NOT NULL,
-    buyer_id BIGINT NOT NULL,
     quantity DECIMAL(10, 2) NOT NULL,
     unit_id INT NOT NULL,
     unit_price DECIMAL(12, 2) NOT NULL,
     discount DECIMAL(12, 2) NOT NULL DEFAULT 0,
     subtotal DECIMAL(14, 2) NOT NULL,
     order_status VARCHAR(50) NOT NULL,
-    created_at DATETIME2 NOT NULL,
-    deleted_at DATETIME2,
-    
+
     CONSTRAINT fk_order_item_order 
         FOREIGN KEY (order_id) REFERENCES stg_orders(order_id) ON DELETE CASCADE,
     CONSTRAINT fk_order_item_product 
         FOREIGN KEY (product_id) REFERENCES stg_products(product_id),
-    CONSTRAINT fk_order_item_seller 
-        FOREIGN KEY (seller_id) REFERENCES stg_users(user_id),
-    CONSTRAINT fk_order_item_buyer 
-        FOREIGN KEY (buyer_id) REFERENCES stg_users(user_id),
-    CONSTRAINT fk_order_item_unit 
+    CONSTRAINT fk_order_item_unit
         FOREIGN KEY (unit_id) REFERENCES stg_units(id),
     CONSTRAINT chk_order_items_quantity CHECK (quantity > 0),
     CONSTRAINT chk_order_items_unit_price CHECK (unit_price > 0),
     CONSTRAINT chk_order_items_discount CHECK (discount >= 0),
-    CONSTRAINT chk_order_items_subtotal CHECK (subtotal >= 0),
-    CONSTRAINT chk_order_items_subtotal_formula CHECK (subtotal = (quantity * unit_price) - discount)
+    CONSTRAINT chk_order_items_subtotal CHECK (subtotal >= 0)
 );
 GO
 
@@ -184,13 +173,8 @@ CREATE TABLE stg_negotiations (
     agreed_unit_id INT NOT NULL,
     agreed_quantity DECIMAL(10, 2) NOT NULL,
     status VARCHAR(50) NOT NULL,
-    start_date DATETIME2 NOT NULL,
-    end_date DATETIME2 NOT NULL,
     initial_offer_price DECIMAL(12, 2),
-    total_chat_turns INT NOT NULL DEFAULT 0,
-    duration_hours DECIMAL(10, 2),
-    deleted_at DATETIME2,
-    
+
     CONSTRAINT fk_negotiation_seller 
         FOREIGN KEY (seller_id) REFERENCES stg_users(user_id),
     CONSTRAINT fk_negotiation_buyer 
@@ -203,40 +187,12 @@ CREATE TABLE stg_negotiations (
     CONSTRAINT chk_negotiations_agreed_quantity CHECK (agreed_quantity > 0),
     CONSTRAINT chk_negotiations_status CHECK (status IN ('accepted', 'canceled', 'rejected', 'ongoing')),
     CONSTRAINT chk_negotiations_initial_price CHECK (initial_offer_price > 0),
-    CONSTRAINT chk_negotiations_chat_turns CHECK (total_chat_turns >= 0),
-    CONSTRAINT chk_negotiations_duration CHECK (duration_hours >= 0),
-    CONSTRAINT chk_negotiations_dates CHECK (end_date >= start_date),
     CONSTRAINT chk_negotiations_buyer_seller CHECK (buyer_id <> seller_id)
 );
 GO
 
 -- =====================================================
--- 10. STAGING NEGOSIASI CHAT
--- =====================================================
-CREATE TABLE stg_negotiation_chats (
-    chat_id BIGINT PRIMARY KEY,
-    negotiation_id BIGINT NOT NULL,
-    turn_order INT NOT NULL,
-    turn_owner VARCHAR(20) NOT NULL,
-    unit_id INT NOT NULL,
-    offer_price DECIMAL(12, 2) NOT NULL,
-    quantity_offer DECIMAL(10, 2) NOT NULL,
-    created_at DATETIME2 NOT NULL,
-    deleted_at DATETIME2,
-    
-    CONSTRAINT fk_chat_negotiation 
-        FOREIGN KEY (negotiation_id) REFERENCES stg_negotiations(negotiation_id) ON DELETE CASCADE,
-    CONSTRAINT fk_chat_unit 
-        FOREIGN KEY (unit_id) REFERENCES stg_units(id),
-    CONSTRAINT chk_chat_turn_order CHECK (turn_order >= 1),
-    CONSTRAINT chk_chat_turn_owner CHECK (turn_owner IN ('seller', 'buyer')),
-    CONSTRAINT chk_chat_offer_price CHECK (offer_price > 0),
-    CONSTRAINT chk_chat_quantity_offer CHECK (quantity_offer > 0)
-);
-GO
-
--- =====================================================
--- 11. STAGING CONTRACT
+-- 10. STAGING CONTRACT
 -- =====================================================
 CREATE TABLE stg_contracts (
     contract_id BIGINT PRIMARY KEY,
@@ -248,9 +204,7 @@ CREATE TABLE stg_contracts (
     end_date DATE NOT NULL,
     frequency VARCHAR(50) NOT NULL,
     contract_status VARCHAR(50) NOT NULL,
-    created_at DATETIME2 NOT NULL,
-    deleted_at DATETIME2,
-    
+
     CONSTRAINT fk_contract_buyer 
         FOREIGN KEY (buyer_id) REFERENCES stg_users(user_id),
     CONSTRAINT fk_contract_seller 
