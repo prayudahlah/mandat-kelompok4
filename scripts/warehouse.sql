@@ -59,8 +59,6 @@ CREATE TABLE dim_date (
 
 CREATE TABLE fact_negotiations (
     negotiations_id INT PRIMARY KEY IDENTITY(1,1),
-    start_date_id INT NOT NULL,
-    end_date_id INT NOT NULL,
     buyer_key INT NOT NULL,
     seller_key INT NOT NULL,
     product_key INT NOT NULL,
@@ -69,11 +67,8 @@ CREATE TABLE fact_negotiations (
     final_status VARCHAR(50),
     price_difference DECIMAL(18,2),
     agreed_quantity_kg DECIMAL(18,2),
-    negotiations_duration_hours DECIMAL(10,2),
     total_chat_turns INT,
 
-    CONSTRAINT FK_fact_negotiations_start_date FOREIGN KEY (start_date_id) REFERENCES dim_date(date_id),
-    CONSTRAINT FK_fact_negotiations_end_date FOREIGN KEY (end_date_id) REFERENCES dim_date(date_id),
     CONSTRAINT FK_fact_negotiations_buyer FOREIGN KEY (buyer_key) REFERENCES dim_users(user_key),
     CONSTRAINT FK_fact_negotiations_seller FOREIGN KEY (seller_key) REFERENCES dim_users(user_key),
     CONSTRAINT FK_fact_negotiations_product FOREIGN KEY (product_key) REFERENCES dim_products(product_key)
