@@ -1,3 +1,5 @@
+CREATE DATABASE warehouse;
+
 CREATE TABLE dim_province (
     province_key INT PRIMARY KEY IDENTITY(1,1),
     province_id INT NOT NULL,
@@ -12,26 +14,26 @@ CREATE TABLE dim_order_status (
 );
 
 CREATE TABLE dim_product_categories (
-    category_key INT PRIMARY KEY IDENTITY(1,1),
-    parent_category_key INT NULL,
-    category_id INT NOT NULL,
-    category_name VARCHAR(255) NOT NULL,
-    valid_from DATE,
-    valid_to DATE,
+        category_key INT PRIMARY KEY IDENTITY(1,1),
+        parent_category_key INT NULL,
+        category_id INT NOT NULL,
+        category_name VARCHAR(255) NOT NULL,
+        valid_from DATE,
+        valid_to DATE,
 
-    CONSTRAINT FK_category_parent FOREIGN KEY (parent_category_key) REFERENCES dim_product_categories(category_key)
+        CONSTRAINT FK_category_parent FOREIGN KEY (parent_category_key) REFERENCES dim_product_categories(category_key)
 );
 
 CREATE TABLE dim_products (
     product_key INT PRIMARY KEY IDENTITY(1,1),
-    category_id INT NOT NULL,
+    category_key INT NOT NULL,  -- Ganti dari category_id
     product_id INT NOT NULL,
     product_name VARCHAR(255) NOT NULL,
     is_active INT NOT NULL,
     valid_from DATE,
     valid_to DATE,
 
-    CONSTRAINT FK_dim_products_category FOREIGN KEY (category_id) REFERENCES dim_product_categories(category_id)
+    CONSTRAINT FK_dim_products_category FOREIGN KEY (category_key) REFERENCES dim_product_categories(category_key)  -- Referensi ke primary key
 );
 
 CREATE TABLE dim_users (
