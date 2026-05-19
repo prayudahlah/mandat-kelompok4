@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <transformation>
   <info>
-    <name>03_b_product</name>
+    <name>04_c_contract</name>
     <description/>
     <extended_description/>
     <trans_version/>
@@ -426,9 +426,9 @@
     <clusterschemas>
     </clusterschemas>
     <created_user>-</created_user>
-    <created_date>2026/05/19 14:56:41.944</created_date>
+    <created_date>2026/05/19 16:13:34.828</created_date>
     <modified_user>-</modified_user>
-    <modified_date>2026/05/19 14:56:41.944</modified_date>
+    <modified_date>2026/05/19 16:13:34.828</modified_date>
     <key_for_session_key/>
     <is_key_private>N</is_key_private>
   </info>
@@ -436,13 +436,13 @@
   </notepads>
   <order>
     <hop>
-      <from>Product Input</from>
-      <to>Product Output</to>
+      <from>Contract Input</from>
+      <to>Contract Output</to>
       <enabled>Y</enabled>
     </hop>
   </order>
   <step>
-    <name>Product Input</name>
+    <name>Contract Input</name>
     <type>TableInput</type>
     <description/>
     <distribute>Y</distribute>
@@ -454,15 +454,17 @@
     </partitioning>
     <connection>panenku_postgres_mdm_hub</connection>
     <sql>SELECT
-  id
-, seller_id
-, category_id
-, "name"
-, unit_id
-, price_per_unit
-, deleted_at
-FROM master.products
-</sql>
+    c.id
+    , c.buyer_id
+    , c.seller_id
+    , c.shipment_id
+    , c.total_amount
+    , c.start_date
+    , c.end_date
+    , c.frequency
+    , cs.code AS contract_status
+FROM "transaction".contracts c
+JOIN reference.contract_statuses cs ON c.contract_status_id = cs.id</sql>
     <limit>0</limit>
     <lookup/>
     <execute_each_row>N</execute_each_row>
@@ -478,6 +480,29 @@ FROM master.products
         <precision>0</precision>
         <origin>Province Input</origin>
         <comments>id</comments>
+        <conversion_Mask>####0;-####0</conversion_Mask>
+        <decimal_symbol>.</decimal_symbol>
+        <grouping_symbol>,</grouping_symbol>
+        <currency_symbol/>
+        <trim_type>none</trim_type>
+        <case_insensitive>N</case_insensitive>
+        <collator_disabled>Y</collator_disabled>
+        <collator_strength>0</collator_strength>
+        <sort_descending>N</sort_descending>
+        <output_padding>N</output_padding>
+        <date_format_lenient>N</date_format_lenient>
+        <date_format_locale>en_US</date_format_locale>
+        <date_format_timezone>Asia/Jakarta</date_format_timezone>
+        <lenient_string_to_number>N</lenient_string_to_number>
+      </value-meta>
+      <value-meta>
+        <type>Integer</type>
+        <storagetype>normal</storagetype>
+        <name>buyer_id</name>
+        <length>15</length>
+        <precision>0</precision>
+        <origin>Province Input</origin>
+        <comments>buyer_id</comments>
         <conversion_Mask>####0;-####0</conversion_Mask>
         <decimal_symbol>.</decimal_symbol>
         <grouping_symbol>,</grouping_symbol>
@@ -519,57 +544,11 @@ FROM master.products
       <value-meta>
         <type>Integer</type>
         <storagetype>normal</storagetype>
-        <name>category_id</name>
+        <name>shipment_id</name>
         <length>15</length>
         <precision>0</precision>
         <origin>Province Input</origin>
-        <comments>category_id</comments>
-        <conversion_Mask>####0;-####0</conversion_Mask>
-        <decimal_symbol>.</decimal_symbol>
-        <grouping_symbol>,</grouping_symbol>
-        <currency_symbol/>
-        <trim_type>none</trim_type>
-        <case_insensitive>N</case_insensitive>
-        <collator_disabled>Y</collator_disabled>
-        <collator_strength>0</collator_strength>
-        <sort_descending>N</sort_descending>
-        <output_padding>N</output_padding>
-        <date_format_lenient>N</date_format_lenient>
-        <date_format_locale>en_US</date_format_locale>
-        <date_format_timezone>Asia/Jakarta</date_format_timezone>
-        <lenient_string_to_number>N</lenient_string_to_number>
-      </value-meta>
-      <value-meta>
-        <type>String</type>
-        <storagetype>normal</storagetype>
-        <name>name</name>
-        <length>150</length>
-        <precision>-1</precision>
-        <origin>Province Input</origin>
-        <comments>name</comments>
-        <conversion_Mask/>
-        <decimal_symbol>.</decimal_symbol>
-        <grouping_symbol>,</grouping_symbol>
-        <currency_symbol/>
-        <trim_type>none</trim_type>
-        <case_insensitive>N</case_insensitive>
-        <collator_disabled>Y</collator_disabled>
-        <collator_strength>0</collator_strength>
-        <sort_descending>N</sort_descending>
-        <output_padding>N</output_padding>
-        <date_format_lenient>N</date_format_lenient>
-        <date_format_locale>en_US</date_format_locale>
-        <date_format_timezone>Asia/Jakarta</date_format_timezone>
-        <lenient_string_to_number>N</lenient_string_to_number>
-      </value-meta>
-      <value-meta>
-        <type>Integer</type>
-        <storagetype>normal</storagetype>
-        <name>unit_id</name>
-        <length>9</length>
-        <precision>0</precision>
-        <origin>Province Input</origin>
-        <comments>unit_id</comments>
+        <comments>shipment_id</comments>
         <conversion_Mask>####0;-####0</conversion_Mask>
         <decimal_symbol>.</decimal_symbol>
         <grouping_symbol>,</grouping_symbol>
@@ -588,11 +567,11 @@ FROM master.products
       <value-meta>
         <type>Number</type>
         <storagetype>normal</storagetype>
-        <name>price_per_unit</name>
-        <length>12</length>
+        <name>total_amount</name>
+        <length>14</length>
         <precision>2</precision>
         <origin>Province Input</origin>
-        <comments>price_per_unit</comments>
+        <comments>total_amount</comments>
         <conversion_Mask>####0.0#########;-####0.0#########</conversion_Mask>
         <decimal_symbol>.</decimal_symbol>
         <grouping_symbol>,</grouping_symbol>
@@ -609,13 +588,82 @@ FROM master.products
         <lenient_string_to_number>N</lenient_string_to_number>
       </value-meta>
       <value-meta>
-        <type>Timestamp</type>
+        <type>Date</type>
         <storagetype>normal</storagetype>
-        <name>deleted_at</name>
-        <length>6</length>
+        <name>start_date</name>
+        <length>-1</length>
         <precision>-1</precision>
         <origin>Province Input</origin>
-        <comments>deleted_at</comments>
+        <comments>start_date</comments>
+        <conversion_Mask/>
+        <decimal_symbol>.</decimal_symbol>
+        <grouping_symbol>,</grouping_symbol>
+        <currency_symbol/>
+        <trim_type>none</trim_type>
+        <case_insensitive>N</case_insensitive>
+        <collator_disabled>Y</collator_disabled>
+        <collator_strength>0</collator_strength>
+        <sort_descending>N</sort_descending>
+        <output_padding>N</output_padding>
+        <date_format_lenient>N</date_format_lenient>
+        <date_format_locale>en_US</date_format_locale>
+        <date_format_timezone>Asia/Jakarta</date_format_timezone>
+        <lenient_string_to_number>N</lenient_string_to_number>
+      </value-meta>
+      <value-meta>
+        <type>Date</type>
+        <storagetype>normal</storagetype>
+        <name>end_date</name>
+        <length>-1</length>
+        <precision>-1</precision>
+        <origin>Province Input</origin>
+        <comments>end_date</comments>
+        <conversion_Mask/>
+        <decimal_symbol>.</decimal_symbol>
+        <grouping_symbol>,</grouping_symbol>
+        <currency_symbol/>
+        <trim_type>none</trim_type>
+        <case_insensitive>N</case_insensitive>
+        <collator_disabled>Y</collator_disabled>
+        <collator_strength>0</collator_strength>
+        <sort_descending>N</sort_descending>
+        <output_padding>N</output_padding>
+        <date_format_lenient>N</date_format_lenient>
+        <date_format_locale>en_US</date_format_locale>
+        <date_format_timezone>Asia/Jakarta</date_format_timezone>
+        <lenient_string_to_number>N</lenient_string_to_number>
+      </value-meta>
+      <value-meta>
+        <type>String</type>
+        <storagetype>normal</storagetype>
+        <name>frequency</name>
+        <length>2147483647</length>
+        <precision>-1</precision>
+        <origin>Province Input</origin>
+        <comments>frequency</comments>
+        <conversion_Mask/>
+        <decimal_symbol>.</decimal_symbol>
+        <grouping_symbol>,</grouping_symbol>
+        <currency_symbol/>
+        <trim_type>none</trim_type>
+        <case_insensitive>N</case_insensitive>
+        <collator_disabled>Y</collator_disabled>
+        <collator_strength>0</collator_strength>
+        <sort_descending>N</sort_descending>
+        <output_padding>N</output_padding>
+        <date_format_lenient>N</date_format_lenient>
+        <date_format_locale>en_US</date_format_locale>
+        <date_format_timezone>Asia/Jakarta</date_format_timezone>
+        <lenient_string_to_number>N</lenient_string_to_number>
+      </value-meta>
+      <value-meta>
+        <type>String</type>
+        <storagetype>normal</storagetype>
+        <name>contract_status</name>
+        <length>20</length>
+        <precision>-1</precision>
+        <origin>Province Input</origin>
+        <comments>contract_status</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
         <grouping_symbol>,</grouping_symbol>
@@ -641,13 +689,13 @@ FROM master.products
       </output>
     </remotesteps>
     <GUI>
-      <xloc>256</xloc>
-      <yloc>176</yloc>
+      <xloc>192</xloc>
+      <yloc>192</yloc>
       <draw>Y</draw>
     </GUI>
   </step>
   <step>
-    <name>Product Output</name>
+    <name>Contract Output</name>
     <type>TableOutput</type>
     <description/>
     <distribute>Y</distribute>
@@ -659,7 +707,7 @@ FROM master.products
     </partitioning>
     <connection>panenku_sqlserver_staging</connection>
     <schema>dbo</schema>
-    <table>stg_products</table>
+    <table>stg_contracts</table>
     <commit>1000</commit>
     <truncate>N</truncate>
     <ignore_errors>N</ignore_errors>
@@ -676,32 +724,40 @@ FROM master.products
     <return_field/>
     <fields>
       <field>
-        <column_name>deleted_at</column_name>
-        <stream_name>deleted_at</stream_name>
+        <column_name>contract_id</column_name>
+        <stream_name>id</stream_name>
       </field>
       <field>
-        <column_name>product_id</column_name>
-        <stream_name>id</stream_name>
+        <column_name>buyer_id</column_name>
+        <stream_name>buyer_id</stream_name>
       </field>
       <field>
         <column_name>seller_id</column_name>
         <stream_name>seller_id</stream_name>
       </field>
       <field>
-        <column_name>category_id</column_name>
-        <stream_name>category_id</stream_name>
+        <column_name>shipment_id</column_name>
+        <stream_name>shipment_id</stream_name>
       </field>
       <field>
-        <column_name>product_name</column_name>
-        <stream_name>name</stream_name>
+        <column_name>total_amount</column_name>
+        <stream_name>total_amount</stream_name>
       </field>
       <field>
-        <column_name>unit_id</column_name>
-        <stream_name>unit_id</stream_name>
+        <column_name>start_date</column_name>
+        <stream_name>start_date</stream_name>
       </field>
       <field>
-        <column_name>price_per_unit</column_name>
-        <stream_name>price_per_unit</stream_name>
+        <column_name>end_date</column_name>
+        <stream_name>end_date</stream_name>
+      </field>
+      <field>
+        <column_name>frequency</column_name>
+        <stream_name>frequency</stream_name>
+      </field>
+      <field>
+        <column_name>contract_status</column_name>
+        <stream_name>contract_status</stream_name>
       </field>
     </fields>
     <attributes/>
@@ -713,8 +769,8 @@ FROM master.products
       </output>
     </remotesteps>
     <GUI>
-      <xloc>432</xloc>
-      <yloc>176</yloc>
+      <xloc>368</xloc>
+      <yloc>192</yloc>
       <draw>Y</draw>
     </GUI>
   </step>
