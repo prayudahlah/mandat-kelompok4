@@ -248,7 +248,7 @@ CREATE TABLE IF NOT EXISTS transaction.contracts (
     id                 BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     buyer_id           BIGINT                             NOT NULL,
     seller_id          BIGINT                             NOT NULL,
-    total_amount       DECIMAL(10, 2)                     NOT NULL,
+    total_amount       DECIMAL(14, 2)                     NOT NULL,
     delivery_location  VARCHAR(255)                       NOT NULL,
     start_date         DATE                               NOT NULL,
     end_date           DATE                               NOT NULL,
