@@ -455,17 +455,16 @@
     </partitioning>
     <connection>panenku_postgres_mdm_hub</connection>
     <sql>SELECT
-    oi.id
-    , oi.order_id
-    , oi.product_id
-    , ois.code AS order_status
-    , oi.quantity
-    , oi.unit_id
-    , oi.price_per_unit
-    , oi.discount
-    , oi.subtotal
-FROM "transaction".order_items oi
-     JOIN reference.order_item_statuses ois ON oi.order_item_status_id = ois.id;
+  id
+, order_id
+, product_id
+, quantity
+, unit_id
+, price_per_unit
+, discount
+, subtotal
+, order_item_status_id
+FROM "transaction".order_items
 </sql>
     <limit>0</limit>
     <lookup/>
@@ -529,29 +528,6 @@ FROM "transaction".order_items oi
         <origin>Order Item Input</origin>
         <comments>product_id</comments>
         <conversion_Mask>####0;-####0</conversion_Mask>
-        <decimal_symbol>.</decimal_symbol>
-        <grouping_symbol>,</grouping_symbol>
-        <currency_symbol/>
-        <trim_type>none</trim_type>
-        <case_insensitive>N</case_insensitive>
-        <collator_disabled>Y</collator_disabled>
-        <collator_strength>0</collator_strength>
-        <sort_descending>N</sort_descending>
-        <output_padding>N</output_padding>
-        <date_format_lenient>N</date_format_lenient>
-        <date_format_locale>en_US</date_format_locale>
-        <date_format_timezone>Asia/Jakarta</date_format_timezone>
-        <lenient_string_to_number>N</lenient_string_to_number>
-      </value-meta>
-      <value-meta>
-        <type>String</type>
-        <storagetype>normal</storagetype>
-        <name>order_status</name>
-        <length>20</length>
-        <precision>-1</precision>
-        <origin>Order Item Input</origin>
-        <comments>order_status</comments>
-        <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
         <grouping_symbol>,</grouping_symbol>
         <currency_symbol/>
@@ -681,6 +657,29 @@ FROM "transaction".order_items oi
         <date_format_timezone>Asia/Jakarta</date_format_timezone>
         <lenient_string_to_number>N</lenient_string_to_number>
       </value-meta>
+      <value-meta>
+        <type>Integer</type>
+        <storagetype>normal</storagetype>
+        <name>order_item_status_id</name>
+        <length>9</length>
+        <precision>0</precision>
+        <origin>Order Item Input</origin>
+        <comments>order_item_status_id</comments>
+        <conversion_Mask>####0;-####0</conversion_Mask>
+        <decimal_symbol>.</decimal_symbol>
+        <grouping_symbol>,</grouping_symbol>
+        <currency_symbol/>
+        <trim_type>none</trim_type>
+        <case_insensitive>N</case_insensitive>
+        <collator_disabled>Y</collator_disabled>
+        <collator_strength>0</collator_strength>
+        <sort_descending>N</sort_descending>
+        <output_padding>N</output_padding>
+        <date_format_lenient>N</date_format_lenient>
+        <date_format_locale>en_US</date_format_locale>
+        <date_format_timezone>Asia/Jakarta</date_format_timezone>
+        <lenient_string_to_number>N</lenient_string_to_number>
+      </value-meta>
     </row-meta>
     <attributes/>
     <cluster_schema/>
@@ -738,10 +737,6 @@ FROM "transaction".order_items oi
         <stream_name>product_id</stream_name>
       </field>
       <field>
-        <column_name>order_status</column_name>
-        <stream_name>order_status</stream_name>
-      </field>
-      <field>
         <column_name>quantity</column_name>
         <stream_name>quantity</stream_name>
       </field>
@@ -760,6 +755,10 @@ FROM "transaction".order_items oi
       <field>
         <column_name>unit_price</column_name>
         <stream_name>price_per_unit</stream_name>
+      </field>
+      <field>
+        <column_name>order_item_status_id</column_name>
+        <stream_name>order_item_status_id</stream_name>
       </field>
     </fields>
     <attributes/>

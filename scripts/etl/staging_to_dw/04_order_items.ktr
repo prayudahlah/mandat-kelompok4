@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <transformation>
   <info>
-    <name>02_c_product_category</name>
+    <name>04_order_items</name>
     <description/>
     <extended_description/>
     <trans_version/>
@@ -426,24 +426,19 @@
     <clusterschemas>
     </clusterschemas>
     <created_user>-</created_user>
-    <created_date>2026/05/19 14:47:13.728</created_date>
+    <created_date>2026/05/24 20:42:16.655</created_date>
     <modified_user>-</modified_user>
-    <modified_date>2026/05/19 14:47:13.728</modified_date>
-    <key_for_session_key>H4sIAAAAAAAA/wMAAAAAAAAAAAA=</key_for_session_key>
+    <modified_date>2026/05/24 22:00:00.000</modified_date>
+    <key_for_session_key/>
     <is_key_private>N</is_key_private>
   </info>
   <notepads>
   </notepads>
   <order>
-    <hop>
-      <from>Product Category Input</from>
-      <to>Product Category Output</to>
-      <enabled>Y</enabled>
-    </hop>
   </order>
   <step>
-    <name>Product Category Input</name>
-    <type>TableInput</type>
+    <name>Load Fact Order Items</name>
+    <type>ExecSQL</type>
     <description/>
     <distribute>Y</distribute>
     <custom_distribution/>
@@ -452,114 +447,75 @@
       <method>none</method>
       <schema_name/>
     </partitioning>
-    <connection>panenku_postgres_mdm_hub</connection>
-    <sql>SELECT
-  id
-, "name"
-, parent_id
-, deleted_at
-FROM reference.product_categories
-</sql>
-    <limit>0</limit>
-    <lookup/>
+    <connection>panenku_sqlserver_dw</connection>
+    <sql>MERGE warehouse.dbo.fact_order_items AS target
+USING (
+    SELECT
+        oi.order_item_id,
+        CAST(CONVERT(VARCHAR(8), o.created_at, 112) AS INT) AS date_id,
+        COALESCE(bu.user_key, 0) AS buyer_key,
+        COALESCE(su.user_key, 0) AS seller_key,
+        COALESCE(op.province_key, 0) AS origin_province_key,
+        COALESCE(dp.province_key, 0) AS destination_province_key,
+        COALESCE(pr.product_key, 0) AS product_key,
+        oi.order_item_status_id,
+        ROUND(oi.quantity * CASE WHEN u.name = 'Kilogram' THEN 1 WHEN u.name = 'Gram' THEN 0.001
+                 WHEN u.name = 'Ton' THEN 1000 WHEN u.name = 'Kuintal' THEN 100
+                 WHEN u.name = 'Liter' THEN 1 WHEN u.name = 'Ons' THEN 0.1
+                 ELSE 1 END, 2) AS quantity_kg,
+        ROUND(oi.unit_price / NULLIF(CASE WHEN u.name = 'Kilogram' THEN 1 WHEN u.name = 'Gram' THEN 0.001
+                 WHEN u.name = 'Ton' THEN 1000 WHEN u.name = 'Kuintal' THEN 100
+                 WHEN u.name = 'Liter' THEN 1 WHEN u.name = 'Ons' THEN 0.1
+                 ELSE 1 END, 0), 2) AS price_per_kg,
+        oi.discount,
+        oi.subtotal AS total_amount,
+        CASE WHEN sp.province_id != sh.destination_province_id THEN 1 ELSE 0 END AS is_interprovince
+    FROM StagingDB.dbo.stg_order_items oi
+    JOIN StagingDB.dbo.stg_orders o ON oi.order_id = o.order_id
+    JOIN StagingDB.dbo.stg_shipments sh ON o.shipment_id = sh.shipment_id
+    LEFT JOIN StagingDB.dbo.stg_seller_profiles sp ON o.seller_id = sp.user_id
+    JOIN StagingDB.dbo.stg_units u ON oi.unit_id = u.id
+    LEFT JOIN warehouse.dbo.dim_users bu ON o.buyer_id = bu.user_id
+    LEFT JOIN warehouse.dbo.dim_users su ON o.seller_id = su.user_id
+    LEFT JOIN warehouse.dbo.dim_province op ON sp.province_id = op.province_id
+    LEFT JOIN warehouse.dbo.dim_province dp ON sh.destination_province_id = dp.province_id
+    LEFT JOIN warehouse.dbo.dim_products pr ON oi.product_id = pr.product_id
+) AS source
+ON target.order_item_id = source.order_item_id
+WHEN MATCHED THEN UPDATE SET
+    date_id = source.date_id,
+    buyer_key = source.buyer_key,
+    seller_key = source.seller_key,
+    origin_province_key = source.origin_province_key,
+    destination_province_key = source.destination_province_key,
+    product_key = source.product_key,
+    order_item_status_id = source.order_item_status_id,
+    quantity_kg = source.quantity_kg,
+    price_per_kg = source.price_per_kg,
+    discount = source.discount,
+    total_amount = source.total_amount,
+    is_interprovince = source.is_interprovince
+WHEN NOT MATCHED THEN INSERT (
+    order_item_id, date_id, buyer_key, seller_key, origin_province_key,
+    destination_province_key, product_key, order_item_status_id, quantity_kg,
+    price_per_kg, discount, total_amount, is_interprovince
+) VALUES (
+    source.order_item_id, source.date_id, source.buyer_key, source.seller_key, source.origin_province_key,
+    source.destination_province_key, source.product_key, source.order_item_status_id, source.quantity_kg,
+    source.price_per_kg, source.discount, source.total_amount, source.is_interprovince
+);</sql>
     <execute_each_row>N</execute_each_row>
-    <variables_active>N</variables_active>
-    <lazy_conversion_active>N</lazy_conversion_active>
-    <cached_row_meta_active>N</cached_row_meta_active>
-    <row-meta>
-      <value-meta>
-        <type>Integer</type>
-        <storagetype>normal</storagetype>
-        <name>id</name>
-        <length>15</length>
-        <precision>0</precision>
-        <origin>User Input</origin>
-        <comments>id</comments>
-        <conversion_Mask>####0;-####0</conversion_Mask>
-        <decimal_symbol>.</decimal_symbol>
-        <grouping_symbol>,</grouping_symbol>
-        <currency_symbol/>
-        <trim_type>none</trim_type>
-        <case_insensitive>N</case_insensitive>
-        <collator_disabled>Y</collator_disabled>
-        <collator_strength>0</collator_strength>
-        <sort_descending>N</sort_descending>
-        <output_padding>N</output_padding>
-        <date_format_lenient>N</date_format_lenient>
-        <date_format_locale>en_US</date_format_locale>
-        <date_format_timezone>Asia/Jakarta</date_format_timezone>
-        <lenient_string_to_number>N</lenient_string_to_number>
-      </value-meta>
-      <value-meta>
-        <type>String</type>
-        <storagetype>normal</storagetype>
-        <name>name</name>
-        <length>100</length>
-        <precision>-1</precision>
-        <origin>User Input</origin>
-        <comments>name</comments>
-        <conversion_Mask/>
-        <decimal_symbol>.</decimal_symbol>
-        <grouping_symbol>,</grouping_symbol>
-        <currency_symbol/>
-        <trim_type>none</trim_type>
-        <case_insensitive>N</case_insensitive>
-        <collator_disabled>Y</collator_disabled>
-        <collator_strength>0</collator_strength>
-        <sort_descending>N</sort_descending>
-        <output_padding>N</output_padding>
-        <date_format_lenient>N</date_format_lenient>
-        <date_format_locale>en_US</date_format_locale>
-        <date_format_timezone>Asia/Jakarta</date_format_timezone>
-        <lenient_string_to_number>N</lenient_string_to_number>
-      </value-meta>
-      <value-meta>
-        <type>Integer</type>
-        <storagetype>normal</storagetype>
-        <name>parent_id</name>
-        <length>15</length>
-        <precision>0</precision>
-        <origin>User Input</origin>
-        <comments>parent_id</comments>
-        <conversion_Mask>####0;-####0</conversion_Mask>
-        <decimal_symbol>.</decimal_symbol>
-        <grouping_symbol>,</grouping_symbol>
-        <currency_symbol/>
-        <trim_type>none</trim_type>
-        <case_insensitive>N</case_insensitive>
-        <collator_disabled>Y</collator_disabled>
-        <collator_strength>0</collator_strength>
-        <sort_descending>N</sort_descending>
-        <output_padding>N</output_padding>
-        <date_format_lenient>N</date_format_lenient>
-        <date_format_locale>en_US</date_format_locale>
-        <date_format_timezone>Asia/Jakarta</date_format_timezone>
-        <lenient_string_to_number>N</lenient_string_to_number>
-      </value-meta>
-      <value-meta>
-        <type>Timestamp</type>
-        <storagetype>normal</storagetype>
-        <name>deleted_at</name>
-        <length>6</length>
-        <precision>-1</precision>
-        <origin>User Input</origin>
-        <comments>deleted_at</comments>
-        <conversion_Mask/>
-        <decimal_symbol>.</decimal_symbol>
-        <grouping_symbol>,</grouping_symbol>
-        <currency_symbol/>
-        <trim_type>none</trim_type>
-        <case_insensitive>N</case_insensitive>
-        <collator_disabled>Y</collator_disabled>
-        <collator_strength>0</collator_strength>
-        <sort_descending>N</sort_descending>
-        <output_padding>N</output_padding>
-        <date_format_lenient>N</date_format_lenient>
-        <date_format_locale>en_US</date_format_locale>
-        <date_format_timezone>Asia/Jakarta</date_format_timezone>
-        <lenient_string_to_number>N</lenient_string_to_number>
-      </value-meta>
-    </row-meta>
+    <single_statement>Y</single_statement>
+    <replace_variables>N</replace_variables>
+    <set_params>N</set_params>
+    <quote_string>N</quote_string>
+    <params>
+      <is_variable>N</is_variable>
+      <field_type>Number</field_type>
+      <field_length>-1</field_length>
+      <field_precision>-1</field_precision>
+      <name/>
+    </params>
     <attributes/>
     <cluster_schema/>
     <remotesteps>
@@ -569,68 +525,8 @@ FROM reference.product_categories
       </output>
     </remotesteps>
     <GUI>
-      <xloc>208</xloc>
-      <yloc>144</yloc>
-      <draw>Y</draw>
-    </GUI>
-  </step>
-  <step>
-    <name>Product Category Output</name>
-    <type>TableOutput</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <connection>panenku_sqlserver_staging</connection>
-    <schema>dbo</schema>
-    <table>stg_product_categories</table>
-    <commit>1000</commit>
-    <truncate>N</truncate>
-    <ignore_errors>N</ignore_errors>
-    <use_batch>Y</use_batch>
-    <specify_fields>Y</specify_fields>
-    <partitioning_enabled>N</partitioning_enabled>
-    <partitioning_field/>
-    <partitioning_daily>N</partitioning_daily>
-    <partitioning_monthly>Y</partitioning_monthly>
-    <tablename_in_field>N</tablename_in_field>
-    <tablename_field/>
-    <tablename_in_table>Y</tablename_in_table>
-    <return_keys>N</return_keys>
-    <return_field/>
-    <fields>
-      <field>
-        <column_name>deleted_at</column_name>
-        <stream_name>deleted_at</stream_name>
-      </field>
-      <field>
-        <column_name>category_id</column_name>
-        <stream_name>id</stream_name>
-      </field>
-      <field>
-        <column_name>category_name</column_name>
-        <stream_name>name</stream_name>
-      </field>
-      <field>
-        <column_name>parent_id</column_name>
-        <stream_name>parent_id</stream_name>
-      </field>
-    </fields>
-    <attributes/>
-    <cluster_schema/>
-    <remotesteps>
-      <input>
-      </input>
-      <output>
-      </output>
-    </remotesteps>
-    <GUI>
-      <xloc>400</xloc>
-      <yloc>144</yloc>
+      <xloc>128</xloc>
+      <yloc>160</yloc>
       <draw>Y</draw>
     </GUI>
   </step>
