@@ -146,7 +146,7 @@ CREATE TABLE stg_order_items (
     unit_price DECIMAL(12, 2) NOT NULL,
     discount DECIMAL(12, 2) NOT NULL DEFAULT 0,
     subtotal DECIMAL(14, 2) NOT NULL,
-    order_status VARCHAR(50) NOT NULL,
+    order_item_status_id BIGINT NOT NULL,
 
     CONSTRAINT fk_order_item_order 
         FOREIGN KEY (order_id) REFERENCES stg_orders(order_id) ON DELETE CASCADE,
@@ -203,7 +203,7 @@ CREATE TABLE stg_contracts (
     start_date DATE NOT NULL,
     end_date DATE NOT NULL,
     frequency VARCHAR(50) NOT NULL,
-    contract_status VARCHAR(50) NOT NULL,
+    contract_status_id BIGINT NOT NULL,
 
     CONSTRAINT fk_contract_buyer 
         FOREIGN KEY (buyer_id) REFERENCES stg_users(user_id),

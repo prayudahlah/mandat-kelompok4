@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <transformation>
   <info>
-    <name>02_c_product_category</name>
+    <name>02_e_order_status</name>
     <description/>
     <extended_description/>
     <trans_version/>
@@ -426,23 +426,23 @@
     <clusterschemas>
     </clusterschemas>
     <created_user>-</created_user>
-    <created_date>2026/05/19 14:47:13.728</created_date>
+    <created_date>2026/05/24 15:47:33.569</created_date>
     <modified_user>-</modified_user>
-    <modified_date>2026/05/19 14:47:13.728</modified_date>
-    <key_for_session_key>H4sIAAAAAAAA/wMAAAAAAAAAAAA=</key_for_session_key>
+    <modified_date>2026/05/24 15:47:33.569</modified_date>
+    <key_for_session_key/>
     <is_key_private>N</is_key_private>
   </info>
   <notepads>
   </notepads>
   <order>
     <hop>
-      <from>Product Category Input</from>
-      <to>Product Category Output</to>
+      <from>Order Status Input</from>
+      <to>Order Status Output</to>
       <enabled>Y</enabled>
     </hop>
   </order>
   <step>
-    <name>Product Category Input</name>
+    <name>Order Status Input</name>
     <type>TableInput</type>
     <description/>
     <distribute>Y</distribute>
@@ -455,10 +455,8 @@
     <connection>panenku_postgres_mdm_hub</connection>
     <sql>SELECT
   id
-, "name"
-, parent_id
-, deleted_at
-FROM reference.product_categories
+, code
+FROM reference.order_item_statuses
 </sql>
     <limit>0</limit>
     <lookup/>
@@ -471,9 +469,9 @@ FROM reference.product_categories
         <type>Integer</type>
         <storagetype>normal</storagetype>
         <name>id</name>
-        <length>15</length>
+        <length>9</length>
         <precision>0</precision>
-        <origin>User Input</origin>
+        <origin>Unit Input</origin>
         <comments>id</comments>
         <conversion_Mask>####0;-####0</conversion_Mask>
         <decimal_symbol>.</decimal_symbol>
@@ -493,57 +491,11 @@ FROM reference.product_categories
       <value-meta>
         <type>String</type>
         <storagetype>normal</storagetype>
-        <name>name</name>
-        <length>100</length>
+        <name>code</name>
+        <length>20</length>
         <precision>-1</precision>
-        <origin>User Input</origin>
-        <comments>name</comments>
-        <conversion_Mask/>
-        <decimal_symbol>.</decimal_symbol>
-        <grouping_symbol>,</grouping_symbol>
-        <currency_symbol/>
-        <trim_type>none</trim_type>
-        <case_insensitive>N</case_insensitive>
-        <collator_disabled>Y</collator_disabled>
-        <collator_strength>0</collator_strength>
-        <sort_descending>N</sort_descending>
-        <output_padding>N</output_padding>
-        <date_format_lenient>N</date_format_lenient>
-        <date_format_locale>en_US</date_format_locale>
-        <date_format_timezone>Asia/Jakarta</date_format_timezone>
-        <lenient_string_to_number>N</lenient_string_to_number>
-      </value-meta>
-      <value-meta>
-        <type>Integer</type>
-        <storagetype>normal</storagetype>
-        <name>parent_id</name>
-        <length>15</length>
-        <precision>0</precision>
-        <origin>User Input</origin>
-        <comments>parent_id</comments>
-        <conversion_Mask>####0;-####0</conversion_Mask>
-        <decimal_symbol>.</decimal_symbol>
-        <grouping_symbol>,</grouping_symbol>
-        <currency_symbol/>
-        <trim_type>none</trim_type>
-        <case_insensitive>N</case_insensitive>
-        <collator_disabled>Y</collator_disabled>
-        <collator_strength>0</collator_strength>
-        <sort_descending>N</sort_descending>
-        <output_padding>N</output_padding>
-        <date_format_lenient>N</date_format_lenient>
-        <date_format_locale>en_US</date_format_locale>
-        <date_format_timezone>Asia/Jakarta</date_format_timezone>
-        <lenient_string_to_number>N</lenient_string_to_number>
-      </value-meta>
-      <value-meta>
-        <type>Timestamp</type>
-        <storagetype>normal</storagetype>
-        <name>deleted_at</name>
-        <length>6</length>
-        <precision>-1</precision>
-        <origin>User Input</origin>
-        <comments>deleted_at</comments>
+        <origin>Unit Input</origin>
+        <comments>code</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
         <grouping_symbol>,</grouping_symbol>
@@ -569,13 +521,13 @@ FROM reference.product_categories
       </output>
     </remotesteps>
     <GUI>
-      <xloc>208</xloc>
-      <yloc>144</yloc>
+      <xloc>192</xloc>
+      <yloc>240</yloc>
       <draw>Y</draw>
     </GUI>
   </step>
   <step>
-    <name>Product Category Output</name>
+    <name>Order Status Output</name>
     <type>TableOutput</type>
     <description/>
     <distribute>Y</distribute>
@@ -587,7 +539,7 @@ FROM reference.product_categories
     </partitioning>
     <connection>panenku_sqlserver_staging</connection>
     <schema>dbo</schema>
-    <table>stg_product_categories</table>
+    <table>stg_order_item_statuses</table>
     <commit>1000</commit>
     <truncate>N</truncate>
     <ignore_errors>N</ignore_errors>
@@ -604,20 +556,12 @@ FROM reference.product_categories
     <return_field/>
     <fields>
       <field>
-        <column_name>deleted_at</column_name>
-        <stream_name>deleted_at</stream_name>
-      </field>
-      <field>
-        <column_name>category_id</column_name>
+        <column_name>order_item_status_id</column_name>
         <stream_name>id</stream_name>
       </field>
       <field>
-        <column_name>category_name</column_name>
-        <stream_name>name</stream_name>
-      </field>
-      <field>
-        <column_name>parent_id</column_name>
-        <stream_name>parent_id</stream_name>
+        <column_name>code</column_name>
+        <stream_name>code</stream_name>
       </field>
     </fields>
     <attributes/>
@@ -629,8 +573,8 @@ FROM reference.product_categories
       </output>
     </remotesteps>
     <GUI>
-      <xloc>400</xloc>
-      <yloc>144</yloc>
+      <xloc>368</xloc>
+      <yloc>240</yloc>
       <draw>Y</draw>
     </GUI>
   </step>
