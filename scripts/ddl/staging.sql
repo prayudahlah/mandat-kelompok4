@@ -62,7 +62,7 @@ GO
 
 
 -- =====================================================
--- 4,5. UNIT
+-- 5. STAGING UNIT
 -- =====================================================
 CREATE TABLE stg_units (
     id         INT PRIMARY KEY,
@@ -72,7 +72,7 @@ CREATE TABLE stg_units (
 
 
 -- =====================================================
--- 5. STAGING PRODUK
+-- 6. STAGING PRODUK
 -- =====================================================
 CREATE TABLE stg_products (
     product_id BIGINT PRIMARY KEY,
@@ -94,7 +94,7 @@ CREATE TABLE stg_products (
 GO
 
 -- =====================================================
--- 6. STAGING SHIPMENT
+-- 7. STAGING SHIPMENT
 -- =====================================================
 CREATE TABLE stg_shipments (
     shipment_id BIGINT PRIMARY KEY,
@@ -113,7 +113,18 @@ CREATE TABLE stg_shipments (
 GO
 
 -- =====================================================
--- 7. STAGING ORDER
+-- 8. STAGING ORDER ITEM STATUS
+-- =====================================================
+CREATE TABLE stg_order_item_statuses (
+    order_item_status_id BIGINT PRIMARY KEY,
+    code VARCHAR(20) NOT NULL,
+
+    CONSTRAINT uq_order_item_statuses_code UNIQUE (code)
+);
+GO
+
+-- =====================================================
+-- 9. STAGING ORDER
 -- =====================================================
 CREATE TABLE stg_orders (
     order_id BIGINT PRIMARY KEY,
@@ -135,7 +146,7 @@ CREATE TABLE stg_orders (
 GO
 
 -- =====================================================
--- 8. STAGING ORDER ITEMS
+-- 10. STAGING ORDER ITEMS
 -- =====================================================
 CREATE TABLE stg_order_items (
     order_item_id BIGINT PRIMARY KEY,
@@ -154,6 +165,8 @@ CREATE TABLE stg_order_items (
         FOREIGN KEY (product_id) REFERENCES stg_products(product_id),
     CONSTRAINT fk_order_item_unit
         FOREIGN KEY (unit_id) REFERENCES stg_units(id),
+    CONSTRAINT fk_order_item_status
+        FOREIGN KEY (order_item_status_id) REFERENCES stg_order_item_statuses(order_item_status_id),
     CONSTRAINT chk_order_items_quantity CHECK (quantity > 0),
     CONSTRAINT chk_order_items_unit_price CHECK (unit_price > 0),
     CONSTRAINT chk_order_items_discount CHECK (discount >= 0),
@@ -162,7 +175,7 @@ CREATE TABLE stg_order_items (
 GO
 
 -- =====================================================
--- 9. STAGING NEGOSIASI
+-- 11. STAGING NEGOSIASI
 -- =====================================================
 CREATE TABLE stg_negotiations (
     negotiation_id BIGINT PRIMARY KEY,
@@ -192,7 +205,18 @@ CREATE TABLE stg_negotiations (
 GO
 
 -- =====================================================
--- 10. STAGING CONTRACT
+-- 12. STAGING CONTRACT STATUS
+-- =====================================================
+CREATE TABLE stg_contract_statuses (
+    contract_status_id BIGINT PRIMARY KEY,
+    code VARCHAR(20) NOT NULL,
+
+    CONSTRAINT uq_contract_statuses_code UNIQUE (code)
+);
+GO
+
+-- =====================================================
+-- 13. STAGING CONTRACT
 -- =====================================================
 CREATE TABLE stg_contracts (
     contract_id BIGINT PRIMARY KEY,
@@ -211,6 +235,8 @@ CREATE TABLE stg_contracts (
         FOREIGN KEY (seller_id) REFERENCES stg_users(user_id),
     CONSTRAINT fk_contract_shipment 
         FOREIGN KEY (shipment_id) REFERENCES stg_shipments(shipment_id),
+    CONSTRAINT fk_contract_status
+        FOREIGN KEY (contract_status_id) REFERENCES stg_contract_statuses(contract_status_id),
     CONSTRAINT uq_contracts_shipment UNIQUE (shipment_id),
     CONSTRAINT chk_contracts_total_amount CHECK (total_amount > 0),
     CONSTRAINT chk_contracts_frequency CHECK (frequency IN ('daily', 'weekly', 'specific_dates')),
